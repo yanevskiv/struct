@@ -16,41 +16,26 @@ struct list {
     list_elem_t* l_tail;
 };
 
-/*
- * List and list element allocation
- */
 list_elem_t* list_elem_new(list_data_t);
 void list_elem_free(list_elem_t*);
 list_t* list_new();
 void list_free(list_t*);
 
-/* 
- * Stack and Queue opreations
- */
 void list_push_head(list_t*, list_data_t);
 void list_push_tail(list_t*, list_data_t);
 list_data_t list_pop_head(list_t*);
 list_data_t list_pop_tail(list_t*);
 
-/*
- * Add / Remove / Find list element
- */
 void list_insert_after(list_t*, list_elem_t*, list_elem_t*);
 void list_insert_before(list_t*, list_elem_t*, list_elem_t*);
 void list_remove(list_t*, list_elem_t*);
 list_elem_t* list_find_elem(list_t*, int (*)(list_data_t, list_data_t));
 
-/* 
- * Random accesas
- */
 list_data_t list_fetch_at(list_t*, int);
 list_data_t list_remove_at(list_t*, int);
 void list_insert_at(list_t*, list_data_t, int);
 int list_index_of(list_t*, int (*)(list_data_t, list_data_t));
 
-/* 
- * List operations
- */
 int list_empty(list_t*);
 int list_count(list_t*);
 void list_clear(list_t*);
@@ -59,9 +44,6 @@ void list_concat(list_t*, list_t*);
 list_t* list_slice(list_t*, int, int);
 list_t* list_clone(list_t*);
 
-/* 
- * Special functions
- */
 void list_for_each(list_t*, void (*)(list_data_t));
 void list_map(list_t*, list_data_t (*)(list_data_t));
 list_t* list_filter(list_t*, int(*)(list_data_t));

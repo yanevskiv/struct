@@ -1,5 +1,6 @@
-#include <list.h>
+#include <array.h>
 
-int main() {
+int main() 
+{
     return 0;
 }
