@@ -1,0 +1,1 @@
+#undef STRUCT_EQUALS

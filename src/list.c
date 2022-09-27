@@ -128,6 +128,7 @@ list_data_t list_pop_head(list_t* list)
         list_elem_free(elem);
         return data;
     }
+    return NULL;
 }
 
 list_data_t list_pop_tail(list_t* list)
@@ -145,6 +146,7 @@ list_data_t list_pop_tail(list_t* list)
         list_elem_free(elem);
         return data;
     }
+    return NULL;
 }
 
 list_data_t list_fetch_at(list_t* list, int at)
@@ -157,6 +159,7 @@ list_data_t list_fetch_at(list_t* list, int at)
         at -= 1;
         iter = iter->le_next;
     }
+    return NULL;
 }
 
 list_data_t list_remove_at(list_t* list, int at)
@@ -185,6 +188,7 @@ list_data_t list_remove_at(list_t* list, int at)
         at -= 1;
         iter = iter->le_next;
     }
+    return NULL;
 }
     
 void list_insert_at(list_t* list, list_data_t data, int at)
@@ -398,6 +402,7 @@ list_data_t list_reduce(list_t* list, list_data_t (*reduce_func)(list_data_t, li
             iter = iter->le_next;
         }
     }
+    return NULL;
 }
 
 void list_map(list_t* list, list_data_t (*map_func)(list_data_t))
