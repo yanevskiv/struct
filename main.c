@@ -1,6 +1,5 @@
 #include <stdio.h>
-#include <struct/tpl/list.h>
-
+#include <struct/list.h>
 
 DEFINE_STRUCT_LIST(list, int)
 
