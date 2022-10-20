@@ -1,46 +1,12 @@
 /**
  * (c) Ivan Janevski
+ *
+ * Rounded Buffer
  */
-
-// calloc and free
-#if !defined(STRUCT_CALLOC) || !defined(STRUCT_FREE) || !defined(STRUCT_NULL)
-    #include <stdlib.h>
-    #undef STRUCT_CALLOC
-    #undef STRUCT_FREE
-    #undef STRUCT_NULL
-
-    #define STRUCT_CALLOC(n, T) calloc((n), sizeof(T))
-    #define STRUCT_FREE(x) free(x)
-    #define STRUCT_NULL NULL
-#endif
-
-// mutex
-#if !defined(STRUCT_MUTEX)
-
-    //  remove invalid
-    #undef STRUCT_MUTEX_INIT
-    #undef STRUCT_MUTEX_LOCK
-    #undef STRUCT_MUTEX_UNLOCK
-    #undef STRUCT_MUTEX_DESTROY
-
-    // Mutex
-    #define STRUCT_MUTEX(mutex)
-    #define STRUCT_MUTEX_INIT(mutex)
-    #define STRUCT_MUTEX_LOCK(mutex)
-    #define STRUCT_MUTEX_UNLOCK(mutex)
-    #define STRUCT_MUTEX_DESTROY(mutex)
-
-    // MT-safe
-    #define STRUCT_MUTEX_SAFE_LOCK(mutex)
-    #define STRUCT_MUTEX_SAFE_UNLOCK(mutex)
-#else
-    #define STRUCT_MUTEX_SAFE_LOCK(mutex)   STRUCT_MUTEX_LOCK(mutex)
-    #define STRUCT_MUTEX_SAFE_UNLOCK(mutex) STRUCT_MUTEX_UNLOCK(mutex)
-#endif
-
+#include "common.h"
 
 // define typedef struct buffer
-#define DEFINE_STRUCT_BUFFER_STRUCT_TYPEDEF(NAME, T) \
+#define DEFINE_STRUCT_BUFFER_TYPEDEF(NAME, T) \
     typedef struct NAME NAME##_t;
     
 // define struct buffer
@@ -153,7 +119,7 @@
 #endif
 
 #define DEFINE_STRUCT_BUFFER(NAME, T) \
-    DEFINE_STRUCT_BUFFER_STRUCT_TYPEDEF(NAME, T) \
+    DEFINE_STRUCT_BUFFER_TYPEDEF(NAME, T) \
     DEFINE_STRUCT_BUFFER_STRUCT(NAME, T) \
     DEFINE_STRUCT_BUFFER_INIT(NAME, T) \
     DEFINE_STRUCT_BUFFER_DESTROY(NAME, T) \
