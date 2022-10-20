@@ -102,3 +102,13 @@
 #if defined(STRUCT_VA)
     #include <stdarg.h>
 #endif
+
+// cast 
+#if !defined(STRUCT_CAST)
+    #define STRUCT_CAST
+#endif
+
+// suffix
+#if !defined(STRUCT_SUFFIX)
+    #define STRUCT_SUFFIX
+#endif
