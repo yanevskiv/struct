@@ -51,38 +51,51 @@
 #define STRUCT_DIV(x, y) ((x) / (y))
 
 
-// concurrnecy 
-#if !defined(STRUCT_MUTEX) 
+// threads
+#if !defined(STRUCT_THREADS) 
     //  remove invalid
+    #undef STRUCT_MUTEX_DECLARE
     #undef STRUCT_MUTEX_INIT
     #undef STRUCT_MUTEX_LOCK
     #undef STRUCT_MUTEX_UNLOCK
     #undef STRUCT_MUTEX_DESTROY
 
     // Mutex
-    #define STRUCT_MUTEX(mutex)
+    #define STRUCT_MUTEX_DECLARE(mutex)
     #define STRUCT_MUTEX_INIT(mutex)
     #define STRUCT_MUTEX_LOCK(mutex)
     #define STRUCT_MUTEX_UNLOCK(mutex)
     #define STRUCT_MUTEX_DESTROY(mutex)
-
-    // MT-safe
-    #define STRUCT_MUTEX_SAFE_LOCK(mutex)
-    #define STRUCT_MUTEX_SAFE_UNLOCK(mutex)
 #endif
 
-// thread safety
+// MT-safety
 #if defined(STRUCT_MT_SAFE)
-    #undef STRUCT_MUTEX_SAFE_LOCK
-    #undef STRUCT_MUTEX_SAFE_UNLOCK
-    #define STRUCT_MUTEX_SAFE_LOCK(mutex)   STRUCT_MUTEX_LOCK(mutex)
-    #define STRUCT_MUTEX_SAFE_UNLOCK(mutex) STRUCT_MUTEX_UNLOCK(mutex)
+    #undef STRUCT_MT_SAFE_DECLARE
+    #undef STRUCT_MT_SAFE_INIT
+    #undef STRUCT_MT_SAFE_DESTROY
+    #undef STRUCT_MT_SAFE_LOCK
+    #undef STRUCT_MT_SAFE_UNLOCK
+
+    #define STRUCT_MT_SAFE_DECLARE(mutex) STRUCT_MUTEX_DECLARE(mutex);
+    #define STRUCT_MT_SAFE_INIT(mutex)    STRUCT_MUTEX_INIT(mutex)
+    #define STRUCT_MT_SAFE_DESTROY(mutex) STRUCT_MUTEX_DESTROY(mutex)
+    #define STRUCT_MT_SAFE_LOCK(mutex)    STRUCT_MUTEX_LOCK(mutex)
+    #define STRUCT_MT_SAFE_UNLOCK(mutex)  STRUCT_MUTEX_UNLOCK(mutex)
 #else
-    #ifndef STRUCT_MUTEX_SAFE_LOCK
-        #define STRUCT_MUTEX_SAFE_LOCK
+    #ifndef STRUCT_MT_SAFE_DECLARE
+        #define STRUCT_MT_SAFE_DECLARE(mutex)
     #endif
-    #ifndef STRUCT_MUTEX_SAFE_LOCK
-        #define STRUCT_MUTEX_SAFE_UNLOCK
+    #ifndef STRUCT_MT_SAFE_INIT
+        #define STRUCT_MT_SAFE_INIT(mutex)
+    #endif
+    #ifndef STRUCT_MT_SAFE_DESTROY
+        #define STRUCT_MT_SAFE_DESTROY(mutex)
+    #endif
+    #ifndef STRUCT_MT_SAFE_LOCK
+        #define STRUCT_MT_SAFE_LOCK(mutex)
+    #endif
+    #ifndef STRUCT_MT_SAFE_UNLOCK
+        #define STRUCT_MT_SAFE_UNLOCK(mutex)
     #endif
 #endif
 
@@ -103,12 +116,60 @@
     #include <stdarg.h>
 #endif
 
-// cast 
+// cast & backcast
 #if !defined(STRUCT_CAST)
     #define STRUCT_CAST
+#endif
+#if !defined(STRUCT_BACKCAST)
+    #define STRUCT_BACKCAST
 #endif
 
 // suffix
 #if !defined(STRUCT_SUFFIX)
     #define STRUCT_SUFFIX
 #endif
+
+// atributes
+#if !defined(STRUCT_ATTRIB)
+    #undef STRUCT_ATTRIB_STATIC
+    #undef STRUCT_ATTRIB_EXTERN
+    #undef STRUCT_ATTRIB_INLINE
+
+    // static
+    #if !defined(STRUCT_STATIC)
+        #define STRUCT_ATTRIB_STATIC
+    #else
+        #define STRUCT_ATTRIB_STATIC static
+    #endif
+
+    // extern
+    #if !defined(STRUCT_EXTERN)
+        #define STRUCT_ATTRIB_EXTERN
+    #else
+        #define STRUCT_ATTRIB_EXTERN extern
+    #endif
+
+    // inline
+    #if !defined(STRUCT_INLINE)
+        #define STRUCT_ATTRIB_INLINE 
+    #else
+        #define STRUCT_ATTRIB_INLINE inline
+    #endif
+
+    // custom
+    #if !defined(STRUCT_ATTRIB_CUSTOM)
+        #define STRUCT_ATTRIB_CUSTOM
+    #endif
+
+    #define STRUCT_ATTRIB \
+        STRUCT_ATTRIB_STATIC \
+        STRUCT_ATTRIB_EXTERN \
+        STRUCT_ATTRIB_INLINE \
+        STRUCT_ATTRIB_CUSTOM
+#endif
+
+// blank value 
+#if !defined(STRUCT_BLANK)
+    #define STRUCT_BLANK 0
+#endif
+

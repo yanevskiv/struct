@@ -6,12 +6,12 @@
 
 #include "common.h"
 
-// typedef
+// define: typedef
 #define DEFINE_STRUCT_LIST_TYPEDEF(NAME, T) \
     typedef struct NAME NAME##_t; \
     typedef struct NAME##_elem NAME##_elem_t;
 
-// struct
+// define: struct
 #define DEFINE_STRUCT_LIST_STRUCT(NAME, T) \
     struct NAME##_elem { \
         struct NAME##_elem *le_prev; \
@@ -21,29 +21,32 @@
     struct NAME { \
         struct NAME##_elem *l_head; \
         struct NAME##_elem *l_tail; \
-        STRUCT_MUTEX(l_mutex); \
+        STRUCT_MUTEX_DECLARE(l_mutex); \
+        STRUCT_MT_SAFE_DECLARE(l_mt_safe); \
     };
 
-// define list_new
+// define: new
 #define DEFINE_STRUCT_LIST_NEW(NAME, T) \
-    struct NAME *NAME##_new() { \
+    STRUCT_ATTRIB struct NAME *NAME##_new() { \
         struct NAME *_list = (struct NAME*) STRUCT_CALLOC(1, struct NAME); \
         _list->l_head = STRUCT_NULL; \
         _list->l_tail = STRUCT_NULL; \
         STRUCT_MUTEX_INIT(_list->l_mutex); \
+        STRUCT_MT_SAFE_INIT(_list->l_mt_safe); \
         return _list; \
     }
 
-// define list_init
+// define init
 #define DEFINE_STRUCT_LIST_INIT(NAME, T) \
     struct NAME *NAME##_init(struct NAME *_list) { \
         _list->l_head = STRUCT_NULL; \
         _list->l_tail = STRUCT_NULL; \
         STRUCT_MUTEX_INIT(_list->l_mutex); \
+        STRUCT_MT_SAFE_INIT(_list->l_mt_safe); \
         return _list; \
     }
 
-// define list_destroy
+// define: destroy
 #define DEFINE_STRUCT_LIST_DESTROY(NAME, T) \
     void NAME##_destroy(struct NAME *_list) { \
         struct NAME##_elem *_iter = _list->l_head, *_next; \
@@ -54,9 +57,11 @@
         } \
         _list->l_head = STRUCT_NULL; \
         _list->l_tail = STRUCT_NULL; \
+        STRUCT_MUTEX_DESTROY(_list->l_mutex); \
+        STRUCT_MT_SAFE_DESTROY(_list->l_mt_safe); \
     }
 
-// define list_free
+// define: free
 #define DEFINE_STRUCT_LIST_FREE(NAME, T) \
     void NAME##_free(struct NAME *_list) { \
         struct NAME##_elem *_iter = _list->l_head, *_next; \
@@ -65,22 +70,46 @@
             STRUCT_FREE(_iter); \
             _iter = _next; \
         } \
+        STRUCT_MUTEX_DESTROY(_list->l_mutex); \
+        STRUCT_MT_SAFE_DESTROY(_list->l_mt_safe); \
         STRUCT_FREE(_list); \
-    }
+   }
 
-// define list_head
+// define: head
 #define DEFINE_STRUCT_LIST_HEAD(NAME, T) \
     struct NAME##_elem *NAME##_head(struct NAME *_list) { \
-        return _list->l_head; \
+        struct NAME##_elem *_return; \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
+        _return = _list->l_head; \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
+        return _return; \
     }
 
-// define list_tail
+// define: tail
 #define DEFINE_STRUCT_LIST_TAIL(NAME, T) \
     struct NAME##_elem *NAME##_tail(struct NAME *_list) { \
-        return _list->l_tail; \
+        struct NAME##_elem *_return; \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
+        _return = _list->l_tail; \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
+        return _return; \
     }
 
-// define list_elem_new
+// define: lock
+#define DEFINE_STRUCT_LIST_LOCK(NAME, T) \
+    void NAME##_lock(struct NAME *_list) \
+    { \
+        STRUCT_MUTEX_LOCK(_list->l_mutex); \
+    }
+
+// define: unlock
+#define DEFINE_STRUCT_LIST_UNLOCK(NAME, T) \
+    void NAME##_unlock(struct NAME *_list) \
+    { \
+        STRUCT_MUTEX_UNLOCK(_list->l_mutex); \
+    }
+
+// define: elem_new
 #define DEFINE_STRUCT_LIST_ELEM_NEW(NAME, T) \
     struct NAME##_elem *NAME##_elem_new(T _data) { \
         struct NAME##_elem *_elem = (struct NAME##_elem*) STRUCT_CALLOC(1, struct NAME##_elem); \
@@ -90,7 +119,7 @@
         return _elem; \
     }
 
-// define list_elem_init
+// define: elem_init
 #define DEFINE_STRUCT_LIST_ELEM_INIT(NAME, T) \
     void NAME##_elem_init(struct NAME##_elem *_elem , T _data) { \
         _elem->le_next = STRUCT_NULL; \
@@ -98,14 +127,14 @@
         STRUCT_ASSIGN(_elem->le_data, _data); \
     }
 
-// define list_elem_destroy
+// define: elem_destroy
 #define DEFINE_STRUCT_LIST_ELEM_DESTROY(NAME, T) \
     void NAME##_elem_destroy(struct NAME##_elem *_elem) { \
         _elem->le_prev = STRUCT_NULL; \
         _elem->le_next = STRUCT_NULL; \
     }
 
-// define list_elem_free
+// define: elem_free
 #define DEFINE_STRUCT_LIST_ELEM_FREE(NAME, T) \
     void NAME##_elem_free(struct NAME##_elem *_elem) { \
         _elem->le_prev = STRUCT_NULL; \
@@ -113,54 +142,59 @@
         STRUCT_FREE(_elem); \
     }
 
-// define list_elem_prev
+// define: elem_prev
 #define DEFINE_STRUCT_LIST_ELEM_PREV(NAME, T) \
     struct NAME##_elem *NAME##_elem_prev(struct NAME##_elem *_elem) { \
         return _elem->le_prev; \
     }
 
-// define list_elem_next
+// define: elem_next
 #define DEFINE_STRUCT_LIST_ELEM_NEXT(NAME, T) \
     struct NAME##_elem *NAME##_elem_next(struct NAME##_elem *_elem) { \
         return _elem->le_next; \
     }
 
-// define list_elem_data
+// define: elem_data
 #define DEFINE_STRUCT_LIST_ELEM_DATA(NAME, T) \
     T NAME##_elem_data(struct NAME##_elem *_elem) { \
         return _elem->le_data; \
     }
 
-// define list_elem_set
+// define: elem_set
 #define DEFINE_STRUCT_LIST_ELEM_SET(NAME, T) \
     void NAME##_elem_set(struct NAME##_elem *_elem, T _data) { \
         STRUCT_ASSIGN(_elem->le_data, _data); \
     }
 
-// define list_empty
+// define: empty
 #define DEFINE_STRUCT_LIST_EMPTY(NAME, T) \
     int NAME##_empty(struct NAME *_list) { \
         return _list->l_head == STRUCT_NULL; \
     }
 
-// define list_count
+// define: count
 #define DEFINE_STRUCT_LIST_COUNT(NAME, T) \
     int NAME##_count(struct NAME *_list) { \
-        struct NAME##_elem *_iter = _list->l_head; \
         int _count = 0; \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
+        struct NAME##_elem *_iter = _list->l_head; \
         while (_iter) { \
             _count += 1; \
             _iter = _iter->le_next; \
         } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
         return _count; \
     }
 
-// define list_clone
+// define: clone
 #define DEFINE_STRUCT_LIST_CLONE(NAME, T)  \
     struct NAME *NAME##_clone(struct NAME *_list) { \
         struct NAME *_clone = (struct NAME*) STRUCT_CALLOC(1, struct NAME); \
         _clone->l_head = STRUCT_NULL; \
         _clone->l_tail = STRUCT_NULL; \
+        STRUCT_MUTEX_INIT(_clone->l_mutex); \
+        STRUCT_MT_SAFE_INIT(_clone->l_mt_safe); \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head, *_elem = STRUCT_NULL; \
         while (_iter) { \
             _elem = (struct NAME##_elem*) STRUCT_CALLOC(1, struct NAME); \
@@ -177,12 +211,14 @@
             } \
             _iter = _iter->le_next; \
         } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
         return _clone; \
     }
 
-// define list_clear
+// define: clear
 #define DEFINE_STRUCT_LIST_CLEAR(NAME, T) \
     void NAME##_clear(struct NAME *_list) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head, *_next = STRUCT_NULL; \
         while (_iter) { \
             _next = _iter->le_next; \
@@ -191,11 +227,13 @@
         } \
         _list->l_head = STRUCT_NULL; \
         _list->l_tail = STRUCT_NULL; \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
 // body: void list_push_head(NAME *_list, T *_data)
 #define STRUCT_BODY_LIST_PUSH_HEAD(NAME, T) \
     { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_elem = (struct NAME##_elem*) STRUCT_CALLOC(1, struct NAME##_elem); \
         _elem->le_prev = STRUCT_NULL; \
         _elem->le_next = STRUCT_NULL; \
@@ -208,11 +246,13 @@
             _list->l_head = _elem; \
             _list->l_tail = _elem; \
         } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
 // body: void list_push_tail(NAME *_list, T *_data)
 #define STRUCT_BODY_LIST_PUSH_TAIL(NAME, T) \
     { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_elem = (struct NAME##_elem*) STRUCT_CALLOC(1, struct NAME##_elem); \
         _elem->le_prev = STRUCT_NULL; \
         _elem->le_next = STRUCT_NULL; \
@@ -225,51 +265,61 @@
             _list->l_tail = _elem; \
             _list->l_head = _elem; \
         } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
 // body: int list_pop_head(NAME *_list, T *_data)
 #define STRUCT_BODY_LIST_POP_HEAD(NAME, T) \
     { \
+        int _count = 0; \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_elem = _list->l_head; \
-        if (! _elem) { \
-            return 0; \
-        } else if (_list->l_tail == _list->l_head)  { \
-            _list->l_tail = STRUCT_NULL; \
-            _list->l_head = STRUCT_NULL; \
-        } else { \
-            _list->l_head = _list->l_head->le_next; \
-            _list->l_head->le_prev = STRUCT_NULL; \
+        if (_elem) { \
+            if (_list->l_tail == _list->l_head)  { \
+                _list->l_tail = STRUCT_NULL; \
+                _list->l_head = STRUCT_NULL; \
+            } else { \
+                _list->l_head = _list->l_head->le_next; \
+                _list->l_head->le_prev = STRUCT_NULL; \
+            } \
+            if (_return) { \
+                STRUCT_ASSIGN(*_return, _elem->le_data); \
+            } \
+            STRUCT_FREE(_elem); \
+            _count = 1; \
         } \
-        if (_return) { \
-            STRUCT_ASSIGN(*_return, _elem->le_data); \
-        } \
-        STRUCT_FREE(_elem); \
-        return 1; \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
+        return _count; \
     }
 
 // body: int list_pop_tail(NAME *_list, T *_data)
 #define STRUCT_BODY_LIST_POP_TAIL(NAME, T) \
     { \
+        int _count = 0; \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_elem = _list->l_tail; \
-        if (! _elem) { \
-            return 0; \
-        } else if (_list->l_tail == _list->l_head) { \
-            _list->l_tail = STRUCT_NULL; \
-            _list->l_head = STRUCT_NULL; \
-        } else { \
-            _list->l_tail = _list->l_tail->le_prev; \
-            _list->l_tail->le_next = STRUCT_NULL; \
+        if (_elem) { \
+            if (_list->l_tail == _list->l_head) { \
+                _list->l_tail = STRUCT_NULL; \
+                _list->l_head = STRUCT_NULL; \
+            } else { \
+                _list->l_tail = _list->l_tail->le_prev; \
+                _list->l_tail->le_next = STRUCT_NULL; \
+            } \
+            if (_return) { \
+                *_return = _elem->le_data; \
+            } \
+            STRUCT_FREE(_elem); \
+            _count = 1; \
         } \
-        if (_return) { \
-            *_return = _elem->le_data; \
-        } \
-        STRUCT_FREE(_elem); \
-        return 1; \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
+        return _count; \
     }
 
 // body: void list_push_elem_head(NAME *_list, NAME##_elem *_elem)
 #define STRUCT_BODY_LIST_PUSH_ELEM_HEAD(NAME, T) \
     { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         _elem->le_prev = STRUCT_NULL; \
         _elem->le_next = STRUCT_NULL; \
         if (_list->l_head) { \
@@ -280,11 +330,13 @@
             _list->l_head = _elem; \
             _list->l_tail = _elem; \
         } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
 // body: void list_push_elem_tail(NAME *_list, NAME##_elem *_elem)
 #define STRUCT_BODY_LIST_PUSH_ELEM_TAIL(NAME, T) \
     { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         _elem->le_prev = STRUCT_NULL; \
         _elem->le_next = STRUCT_NULL; \
         if (_list->l_tail) { \
@@ -295,45 +347,49 @@
             _list->l_tail = _elem; \
             _list->l_head = _elem; \
         } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
 // body: NAME##_elem *list_pop_elem_head(NAME *_list)
 #define STRUCT_BODY_LIST_POP_ELEM_HEAD(NAME, T) \
     { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_elem = _list->l_head; \
-        if (! _elem) { \
-            return STRUCT_NULL; \
+        if (_elem) { \
+            if (_list->l_tail == _list->l_head)  { \
+                _list->l_tail = STRUCT_NULL; \
+                _list->l_head = STRUCT_NULL; \
+            } else { \
+                _list->l_head = _list->l_head->le_next; \
+                _list->l_head->le_prev = STRUCT_NULL; \
+            } \
         } \
-        if (_list->l_tail == _list->l_head)  { \
-            _list->l_tail = STRUCT_NULL; \
-            _list->l_head = STRUCT_NULL; \
-        } else { \
-            _list->l_head = _list->l_head->le_next; \
-            _list->l_head->le_prev = STRUCT_NULL; \
-        } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
         return _elem; \
     }
 
 // body: NAME##_elem *list_pop_elem_tail(NAME *_list)
 #define STRUCT_BODY_LIST_POP_ELEM_TAIL(NAME, T) \
     { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_elem = _list->l_tail; \
-        if (! _elem) { \
-            return STRUCT_NULL; \
+        if (_elem) { \
+            if (_list->l_tail == _list->l_head) { \
+                _list->l_tail = STRUCT_NULL; \
+                _list->l_head = STRUCT_NULL; \
+            } else { \
+                _list->l_tail = _list->l_tail->le_prev; \
+                _list->l_tail->le_next = STRUCT_NULL; \
+            } \
         } \
-        if (_list->l_tail == _list->l_head) { \
-            _list->l_tail = STRUCT_NULL; \
-            _list->l_head = STRUCT_NULL; \
-        } else { \
-            _list->l_tail = _list->l_tail->le_prev; \
-            _list->l_tail->le_next = STRUCT_NULL; \
-        } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
         return _elem; \
     }
 
 // body: list_push_head_va(NAME *_list, T *_key, ...)
 #define STRUCT_BODY_LIST_PUSH_HEAD_VA(NAME, T) \
     { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         va_list _va; \
         va_start(_va, _key); \
         T _data = va_arg(_va, T); \
@@ -353,12 +409,14 @@
             _data = va_arg(_va, T); \
         } \
         va_end(_va); \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
 
-// body list_push_tail_va(NAME *_list, T *_key, ...)
+// body: list_push_tail_va(NAME *_list, T *_key, ...)
 #define STRUCT_BODY_LIST_PUSH_TAIL_VA(NAME, T) \
     { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         va_list _va; \
         va_start(_va, _key); \
         T _data = va_arg(_va, T); \
@@ -378,11 +436,13 @@
             _data = va_arg(_va, T); \
         } \
         va_end(_va); \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
-// body list_pop_head_va(NAME *_list, ...)
+// body: list_pop_head_va(NAME *_list, ...)
 #define STRUCT_BODY_LIST_POP_HEAD_VA(NAME, T) \
     { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         int _count = 0; \
         va_list _va; \
         va_start(_va, _list); \
@@ -404,12 +464,14 @@
             _count += 1; \
         } \
         va_end(_va); \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
         return _count; \
     }
 
-// body list_pop_tail_va(NAME *_list, ...)
+// body: list_pop_tail_va(NAME *_list, ...)
 #define STRUCT_BODY_LIST_POP_TAIL_VA(NAME, T)\
     { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         int _count = 0; \
         va_list _va; \
         va_start(_va, _list); \
@@ -431,194 +493,203 @@
             _count += 1; \
         } \
         va_end(_va); \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
         return _count; \
     }
 
 // body: void list_push_elem_head_va(NAME *_list, ...)
 #define STRUCT_BODY_LIST_PUSH_ELEM_HEAD_VA(NAME, T) \
     { \
-         va_list _va; \
-         va_start(_va, _list); \
-         struct NAME##_elem *_elem = va_arg(_va, struct NAME##_elem*); \
-         while (_elem) { \
-             _elem->le_prev = STRUCT_NULL; \
-             _elem->le_next = STRUCT_NULL; \
-             if (! _list->l_head) { \
-                 _list->l_head = _elem; \
-                 _list->l_tail = _elem; \
-             } else { \
-                 _elem->le_next = _list->l_head; \
-                 _list->l_head->le_prev = _elem; \
-                 _list->l_head = _elem; \
-             } \
-             _elem = va_arg(_va, struct NAME##_elem*); \
-         } \
-         va_end(_va); \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
+        va_list _va; \
+        va_start(_va, _list); \
+        struct NAME##_elem *_elem = va_arg(_va, struct NAME##_elem*); \
+        while (_elem) { \
+            _elem->le_prev = STRUCT_NULL; \
+            _elem->le_next = STRUCT_NULL; \
+            if (! _list->l_head) { \
+                _list->l_head = _elem; \
+                _list->l_tail = _elem; \
+            } else { \
+                _elem->le_next = _list->l_head; \
+                _list->l_head->le_prev = _elem; \
+                _list->l_head = _elem; \
+            } \
+            _elem = va_arg(_va, struct NAME##_elem*); \
+        } \
+        va_end(_va); \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
      }
 
 // body: void list_push_elem_tail_va(NAME *_list, ...)
 #define STRUCT_BODY_LIST_PUSH_ELEM_TAIL_VA(NAME, T) \
     { \
-         va_list _va; \
-         va_start(_va, _list); \
-         struct NAME##_elem *_elem = va_arg(_va, struct NAME##_elem*); \
-         while (_elem) { \
-             _elem->le_prev = STRUCT_NULL; \
-             _elem->le_next = STRUCT_NULL; \
-             if (! _list->l_tail) { \
-                 _list->l_head = _elem; \
-                 _list->l_tail = _elem; \
-             } else { \
-                 _elem->le_prev = _list->l_tail; \
-                 _list->l_tail->le_next = _elem; \
-                 _list->l_tail = _elem; \
-             } \
-             _elem = va_arg(_va, struct NAME##_elem*); \
-         } \
-         va_end(_va); \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
+        va_list _va; \
+        va_start(_va, _list); \
+        struct NAME##_elem *_elem = va_arg(_va, struct NAME##_elem*); \
+        while (_elem) { \
+            _elem->le_prev = STRUCT_NULL; \
+            _elem->le_next = STRUCT_NULL; \
+            if (! _list->l_tail) { \
+                _list->l_head = _elem; \
+                _list->l_tail = _elem; \
+            } else { \
+                _elem->le_prev = _list->l_tail; \
+                _list->l_tail->le_next = _elem; \
+                _list->l_tail = _elem; \
+            } \
+            _elem = va_arg(_va, struct NAME##_elem*); \
+        } \
+        va_end(_va); \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
      }
 
 
 // body: int list_pop_elem_head_va(NAME *_list, ...)
 #define STRUCT_BODY_LIST_POP_ELEM_HEAD_VA(NAME, T) \
-     { \
-         va_list _va; \
-         va_start(_va, _list); \
-         int _count = 0; \
-         struct NAME##_elem *_elem, **_return = va_arg(_va, struct NAME##_elem**); \
-         while (_return) { \
-             if (! _list->l_head) { \
-                *_return = STRUCT_NULL; \
-             } else { \
-                 _elem = _list->l_head; \
-                 if (_list->l_head == _list->l_tail)  { \
-                     _list->l_head = STRUCT_NULL; \
-                     _list->l_tail = STRUCT_NULL; \
-                 } else { \
-                     _list->l_head = _list->l_head->le_next; \
-                     _list->l_head->le_prev = STRUCT_NULL; \
-                 } \
-                 _elem->le_prev = STRUCT_NULL; \
-                 _elem->le_next = STRUCT_NULL; \
-                 *_return = _elem; \
-                 _count += 1; \
-             } \
-             _return = va_arg(_va, struct NAME##_elem**); \
-         } \
-         va_end(_va); \
-         return _count; \
-     }
+    { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
+        va_list _va; \
+        va_start(_va, _list); \
+        int _count = 0; \
+        struct NAME##_elem *_elem, **_return = va_arg(_va, struct NAME##_elem**); \
+        while (_return) { \
+            if (! _list->l_head) { \
+               *_return = STRUCT_NULL; \
+            } else { \
+                _elem = _list->l_head; \
+                if (_list->l_head == _list->l_tail)  { \
+                    _list->l_head = STRUCT_NULL; \
+                    _list->l_tail = STRUCT_NULL; \
+                } else { \
+                    _list->l_head = _list->l_head->le_next; \
+                    _list->l_head->le_prev = STRUCT_NULL; \
+                } \
+                _elem->le_prev = STRUCT_NULL; \
+                _elem->le_next = STRUCT_NULL; \
+                *_return = _elem; \
+                _count += 1; \
+            } \
+            _return = va_arg(_va, struct NAME##_elem**); \
+        } \
+        va_end(_va); \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
+        return _count; \
+    }
 
 // body list_pop_elem_tail_va(NAME *_list, ...)
 #define STRUCT_BODY_LIST_POP_ELEM_TAIL_VA(NAME, T) \
      { \
-         va_list _va; \
-         va_start(_va, _list); \
-         int _count = 0; \
-         struct NAME##_elem *_elem, **_return = va_arg(_va, struct NAME##_elem**); \
-         while (_return) { \
-             if (! _list->l_tail) { \
-                *_return = STRUCT_NULL; \
-             } else { \
-                 _elem = _list->l_tail; \
-                 if (_list->l_head == _list->l_tail)  { \
-                     _list->l_head = STRUCT_NULL; \
-                     _list->l_tail = STRUCT_NULL; \
-                 } else { \
-                     _list->l_tail = _list->l_tail->le_prev; \
-                     _list->l_tail->le_next = STRUCT_NULL; \
-                 } \
-                 _elem->le_prev = STRUCT_NULL; \
-                 _elem->le_next = STRUCT_NULL; \
-                 *_return = _elem; \
-                 _count += 1; \
-             } \
-             _return = va_arg(_va, struct NAME##_elem**); \
-         } \
-         va_end(_va); \
-         return _count; \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
+        va_list _va; \
+        va_start(_va, _list); \
+        int _count = 0; \
+        struct NAME##_elem *_elem, **_return = va_arg(_va, struct NAME##_elem**); \
+        while (_return) { \
+            if (! _list->l_tail) { \
+               *_return = STRUCT_NULL; \
+            } else { \
+                _elem = _list->l_tail; \
+                if (_list->l_head == _list->l_tail)  { \
+                    _list->l_head = STRUCT_NULL; \
+                    _list->l_tail = STRUCT_NULL; \
+                } else { \
+                    _list->l_tail = _list->l_tail->le_prev; \
+                    _list->l_tail->le_next = STRUCT_NULL; \
+                } \
+                _elem->le_prev = STRUCT_NULL; \
+                _elem->le_next = STRUCT_NULL; \
+                *_return = _elem; \
+                _count += 1; \
+            } \
+            _return = va_arg(_va, struct NAME##_elem**); \
+        } \
+        va_end(_va); \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
+        return _count; \
      }
 
 // define double_queue
 #if defined(STRUCT_DOUBLE_QUEUE)
-    // define list_enqueue_head
+    // define: enqueue_head
     #define DEFINE_STRUCT_LIST_ENQUEUE_HEAD(NAME, T) \
         void NAME##_enqueue_head(struct NAME *_list, T _data) \
         STRUCT_BODY_LIST_PUSH_HEAD(NAME, T)
 
-    // define list_enqueue_tail
+    // define: enqueue_tail
     #define DEFINE_STRUCT_LIST_ENQUEUE_TAIL(NAME, T) \
         void NAME##_enqueue_tail(struct NAME *_list, T _data) \
         STRUCT_BODY_LIST_PUSH_TAIL(NAME, T)
 
-    // define list_dequeue_tail
+    // define: dequeue_tail
     #define DEFINE_STRUCT_LIST_DEQUEUE_TAIL(NAME, T)\
         int NAME##_dequeue_tail(struct NAME *_list, T *_return) \
         STRUCT_BODY_LIST_POP_TAIL(NAME, T)
 
-    // define list_dequeue_head
+    // define: dequeue_head
     #define DEFINE_STRUCT_LIST_DEQUEUE_HEAD(NAME, T) \
         int NAME##_dequeue_head(struct NAME *_list, T *_return) \
         STRUCT_BODY_LIST_POP_HEAD(NAME, T)
 
-    // define list_enqueue_elem_head
+    // define: enqueue_elem_head
     #define DEFINE_STRUCT_LIST_ENQUEUE_ELEM_HEAD(NAME, T) \
         void NAME##_enqueue_elem_head(struct NAME *_list, struct NAME##_elem *_elem) \
         STRUCT_BODY_LIST_PUSH_ELEM_HEAD(NAME, T)
 
-    // define list_enqueue_elem_tail
+    // define: enqueue_elem_tail
     #define DEFINE_STRUCT_LIST_ENQUEUE_ELEM_TAIL(NAME, T) \
         void NAME##_enqueue_elem_tail(struct NAME *_list, struct NAME##_elem *_elem) \
         STRUCT_BODY_LIST_PUSH_ELEM_TAIL(NAME, T)
 
-    // define list_dequeue_elem_tail
+    // define: dequeue_elem_tail
     #define DEFINE_STRUCT_LIST_DEQUEUE_ELEM_TAIL(NAME, T) \
         struct NAME##_elem *NAME##_dequeue_elem_tail(struct NAME *_list) \
         STRUCT_BODY_LIST_POP_ELEM_TAIL(NAME, T)
 
-    // define list_dequeue_elem_head
+    // define: dequeue_elem_head
     #define DEFINE_STRUCT_LIST_DEQUEUE_ELEM_HEAD(NAME, T) \
         struct NAME##_elem *NAME##_dequeue_elem_head(struct NAME *_list) \
         STRUCT_BODY_LIST_POP_ELEM_HEAD(NAME, T)
 
     // define double_queue_va
     #if defined(STRUCT_VA)
-        // define list_enqueue_head_va
+        // define: enqueue_head_va
         #define DEFINE_STRUCT_LIST_ENQUEUE_HEAD_VA(NAME, T) \
             void NAME##_enqueue_head_va(struct NAME *_list, T _key, ...) \
             STRUCT_BODY_LIST_PUSH_HEAD_VA(NAME, T)
 
-        // define list_enqueue_tail_va
+        // define: enqueue_tail_va
         #define DEFINE_STRUCT_LIST_ENQUEUE_TAIL_VA(NAME, T) \
             void NAME##_enqueue_tail_va(struct NAME *_list, T _key, ...) \
             STRUCT_BODY_LIST_PUSH_TAIL_VA(NAME, T)
 
-        // define list_dequeue_head_va
+        // define: dequeue_head_va
         #define DEFINE_STRUCT_LIST_DEQUEUE_HEAD_VA(NAME, T) \
             int NAME##_dequeue_head_va(struct NAME *_list, ...) \
             STRUCT_BODY_LIST_POP_HEAD_VA(NAME, T)
 
-        // define list_dequeue_tail_va
+        // define: dequeue_tail_va
         #define DEFINE_STRUCT_LIST_DEQUEUE_TAIL_VA(NAME, T) \
             int NAME##_dequeue_tail_va(struct NAME *_list, ...) \
             STRUCT_BODY_LIST_POP_TAIL_VA(NAME, T)
 
-        // define list_enqueue_elem_head_va
+        // define: enqueue_elem_head_va
         #define DEFINE_STRUCT_LIST_ENQUEUE_ELEM_HEAD_VA(NAME, T) \
             void NAME##_enqueue_elem_head_va(struct NAME *_list, ...) \
             STRUCT_BODY_LIST_PUSH_ELEM_HEAD_VA(NAME, T)
 
-        // define list_enqueue_elem_tail_va
+        // define: enqueue_elem_tail_va
         #define DEFINE_STRUCT_LIST_ENQUEUE_ELEM_TAIL_VA(NAME, T) \
             void NAME##_enqueue_elem_tail_va(struct NAME *_list, ...) \
             STRUCT_BODY_LIST_PUSH_ELEM_TAIL_VA(NAME, T)
 
-        // define list_dequeue_elem_head_va
+        // define: dequeue_elem_head_va
         #define DEFINE_STRUCT_LIST_DEQUEUE_ELEM_HEAD_VA(NAME, T) \
             int NAME##_dequeue_elem_head_va(struct NAME *_list, ...) \
             STRUCT_BODY_LIST_POP_ELEM_HEAD_VA(NAME, T)
 
-        // define list_dequeue_elem_tail_va
+        // define: dequeue_elem_tail_va
         #define DEFINE_STRUCT_LIST_DEQUEUE_ELEM_TAIL_VA(NAME, T) \
             int NAME##_dequeue_elem_tail_va(struct NAME *_list, ...) \
             STRUCT_BODY_LIST_POP_ELEM_TAIL_VA(NAME, T)
@@ -626,125 +697,125 @@
 #endif
 
 #if !defined(STRUCT_DOUBLE_QUEUE)
-    // define list_enqueue_head
+    // define: enqueue_head
     #define DEFINE_STRUCT_LIST_ENQUEUE_HEAD(NAME, T)
-    // define list_enqueue_tail
+    // define: enqueue_tail
     #define DEFINE_STRUCT_LIST_ENQUEUE_TAIL(NAME, T)
-    // define list_dequeue_head
+    // define: dequeue_head
     #define DEFINE_STRUCT_LIST_DEQUEUE_HEAD(NAME, T)
-    // define list_dequeue_tail
+    // define: dequeue_tail
     #define DEFINE_STRUCT_LIST_DEQUEUE_TAIL(NAME, T)
 
-    // define list_enqueue_elem_head
+    // define: enqueue_elem_head
     #define DEFINE_STRUCT_LIST_ENQUEUE_ELEM_HEAD(NAME, T)
-    // define list_enqueue_elem_tail
+    // define: enqueue_elem_tail
     #define DEFINE_STRUCT_LIST_ENQUEUE_ELEM_TAIL(NAME, T)
-    // define list_dequeue_elem_head
+    // define: dequeue_elem_head
     #define DEFINE_STRUCT_LIST_DEQUEUE_ELEM_HEAD(NAME, T)
-    // define list_dequeue_elem_tail
+    // define: dequeue_elem_tail
     #define DEFINE_STRUCT_LIST_DEQUEUE_ELEM_TAIL(NAME, T)
 #endif
 
 #if !defined(STRUCT_DOUBLE_QUEUE) || !defined(STRUCT_VA)
-    // define list_enqueue_head_va
+    // define: enqueue_head_va
     #define DEFINE_STRUCT_LIST_ENQUEUE_HEAD_VA(NAME, T)
-    // define list_enqueue_tail_va
+    // define: enqueue_tail_va
     #define DEFINE_STRUCT_LIST_ENQUEUE_TAIL_VA(NAME, T)
-    // define list_dequeue_head_va
+    // define: dequeue_head_va
     #define DEFINE_STRUCT_LIST_DEQUEUE_HEAD_VA(NAME, T)
-    // define list_dequeue_tail_va
+    // define: dequeue_tail_va
     #define DEFINE_STRUCT_LIST_DEQUEUE_TAIL_VA(NAME, T)
 
-    // define list_enqueue_elem_head_va
+    // define: enqueue_elem_head_va
     #define DEFINE_STRUCT_LIST_ENQUEUE_ELEM_HEAD_VA(NAME, T)
-    // define list_enqueue_elem_tail_va
+    // define: enqueue_elem_tail_va
     #define DEFINE_STRUCT_LIST_ENQUEUE_ELEM_TAIL_VA(NAME, T)
-    // define list_dequeue_elem_head_va
+    // define: dequeue_elem_head_va
     #define DEFINE_STRUCT_LIST_DEQUEUE_ELEM_HEAD_VA(NAME, T)
-    // define list_dequeue_elem_tail_va
+    // define: dequeue_elem_tail_va
     #define DEFINE_STRUCT_LIST_DEQUEUE_ELEM_TAIL_VA(NAME, T)
 #endif
 
 // define double_stack
 #if defined(STRUCT_DOUBLE_STACK)
-    // define list_push_head
+    // define: push_head
     #define DEFINE_STRUCT_LIST_PUSH_HEAD(NAME, T) \
         void NAME##_push_head(struct NAME *_list, T _data) \
         STRUCT_BODY_LIST_PUSH_HEAD(NAME, T)
 
-    // define list_push_tail
+    // define: push_tail
     #define DEFINE_STRUCT_LIST_PUSH_TAIL(NAME, T) \
         void NAME##_push_tail(struct NAME *_list, T _data) \
         STRUCT_BODY_LIST_PUSH_TAIL(NAME, T)
 
-    // define list_pop_tail
+    // define: pop_tail
     #define DEFINE_STRUCT_LIST_POP_TAIL(NAME, T)\
         int NAME##_pop_tail(struct NAME *_list, T *_return) \
         STRUCT_BODY_LIST_POP_TAIL(NAME, T)
 
-    // define list_pop_head
+    // define: pop_head
     #define DEFINE_STRUCT_LIST_POP_HEAD(NAME, T) \
         int NAME##_pop_head(struct NAME *_list, T *_return) \
         STRUCT_BODY_LIST_POP_HEAD(NAME, T)
 
-    // define list_push_elem_head
+    // define: push_elem_head
     #define DEFINE_STRUCT_LIST_PUSH_ELEM_HEAD(NAME, T) \
         void NAME##_push_elem_head(struct NAME *_list, struct NAME##_elem *_elem) \
         STRUCT_BODY_LIST_PUSH_ELEM_HEAD(NAME, T)
 
-    // define list_push_elem_tail
+    // define: push_elem_tail
     #define DEFINE_STRUCT_LIST_PUSH_ELEM_TAIL(NAME, T) \
         void NAME##_push_elem_tail(struct NAME *_list, struct NAME##_elem *_elem) \
         STRUCT_BODY_LIST_PUSH_ELEM_TAIL(NAME, T)
 
-    // define list_pop_elem_tail
+    // define: pop_elem_tail
     #define DEFINE_STRUCT_LIST_POP_ELEM_TAIL(NAME, T) \
         struct NAME##_elem *NAME##_pop_elem_tail(struct NAME *_list) \
         STRUCT_BODY_LIST_POP_ELEM_TAIL(NAME, T)
 
-    // define list_pop_elem_head
+    // define: pop_elem_head
     #define DEFINE_STRUCT_LIST_POP_ELEM_HEAD(NAME, T) \
         struct NAME##_elem *NAME##_pop_elem_head(struct NAME *_list) \
         STRUCT_BODY_LIST_POP_ELEM_HEAD(NAME, T)
 
     // define double_stack_va
     #if defined(STRUCT_VA)
-        // define list_push_head_va
+        // define: push_head_va
         #define DEFINE_STRUCT_LIST_PUSH_HEAD_VA(NAME, T) \
             void NAME##_push_head_va(struct NAME *_list, T _key, ...) \
             STRUCT_BODY_LIST_PUSH_HEAD_VA(NAME, T)
 
-        // define list_pop_tail_va
+        // define: pop_tail_va
         #define DEFINE_STRUCT_LIST_PUSH_TAIL_VA(NAME, T) \
             void NAME##_push_tail_va(struct NAME *_list, T _key, ...) \
             STRUCT_BODY_LIST_PUSH_TAIL_VA(NAME, T)
 
-        // define list_pop_head_va
+        // define: pop_head_va
         #define DEFINE_STRUCT_LIST_POP_HEAD_VA(NAME, T) \
             int NAME##_pop_head_va(struct NAME *_list, ...) \
             STRUCT_BODY_LIST_POP_HEAD_VA(NAME, T)
 
-        // define list_pop_tail_va
+        // define: pop_tail_va
         #define DEFINE_STRUCT_LIST_POP_TAIL_VA(NAME, T) \
             int NAME##_pop_tail_va(struct NAME *_list, ...) \
             STRUCT_BODY_LIST_POP_TAIL_VA(NAME, T)
 
-        // define list_push_head_va
+        // define: push_head_va
         #define DEFINE_STRUCT_LIST_PUSH_ELEM_HEAD_VA(NAME, T) \
             void NAME##_push_elem_head_va(struct NAME *_list, ...) \
             STRUCT_BODY_LIST_PUSH_ELEM_HEAD_VA(NAME, T)
 
-        // define list_pop_tail_va
+        // define: pop_tail_va
         #define DEFINE_STRUCT_LIST_PUSH_ELEM_TAIL_VA(NAME, T) \
             void NAME##_push_elem_tail_va(struct NAME *_list, ...) \
             STRUCT_BODY_LIST_PUSH_ELEM_TAIL_VA(NAME, T)
 
-        // define list_pop_head_va
+        // define: pop_head_va
         #define DEFINE_STRUCT_LIST_POP_ELEM_HEAD_VA(NAME, T) \
             int NAME##_pop_elem_head_va(struct NAME *_list, ...) \
             STRUCT_BODY_LIST_POP_ELEM_HEAD_VA(NAME, T)
 
-        // define list_pop_tail_va
+        // define: pop_tail_va
         #define DEFINE_STRUCT_LIST_POP_ELEM_TAIL_VA(NAME, T) \
             int NAME##_pop_elem_tail_va(struct NAME *_list, ...) \
             STRUCT_BODY_LIST_POP_ELEM_TAIL_VA(NAME, T)
@@ -752,200 +823,220 @@
 #endif
 
 #if !defined(STRUCT_DOUBLE_STACK)
-    // define list_push_head
+    // define: push_head
     #define DEFINE_STRUCT_LIST_PUSH_HEAD(NAME, T)
-    // define list_push_tail
+    // define: push_tail
     #define DEFINE_STRUCT_LIST_PUSH_TAIL(NAME, T)
-    // define list_pop_head
+    // define: pop_head
     #define DEFINE_STRUCT_LIST_POP_HEAD(NAME, T)
-    // define list_pop_tail
+    // define: pop_tail
     #define DEFINE_STRUCT_LIST_POP_TAIL(NAME, T)
 
-    // define list_push_elem_head
+    // define: push_elem_head
     #define DEFINE_STRUCT_LIST_PUSH_ELEM_HEAD(NAME, T)
-    // define list_push_elem_tail
+    // define: push_elem_tail
     #define DEFINE_STRUCT_LIST_PUSH_ELEM_TAIL(NAME, T)
-    // define list_pop_elem_head
+    // define: pop_elem_head
     #define DEFINE_STRUCT_LIST_POP_ELEM_HEAD(NAME, T)
-    // define list_pop_elem_tail
+    // define: pop_elem_tail
     #define DEFINE_STRUCT_LIST_POP_ELEM_TAIL(NAME, T)
 #endif
 
 #if !defined(STRUCT_DOUBLE_STACK) || !defined(STRUCT_VA)
-    // define list_push_head_va
+    // define: push_head_va
     #define DEFINE_STRUCT_LIST_PUSH_HEAD_VA(NAME, T)
-    // define list_push_tail_va
+    // define: push_tail_va
     #define DEFINE_STRUCT_LIST_PUSH_TAIL_VA(NAME, T)
-    // define list_pop_head_va
+    // define: pop_head_va
     #define DEFINE_STRUCT_LIST_POP_HEAD_VA(NAME, T)
-    // define list_pop_tail_va
+    // define: pop_tail_va
     #define DEFINE_STRUCT_LIST_POP_TAIL_VA(NAME, T)
 
-    // define list_push_elem_head_va
+    // define: push_elem_head_va
     #define DEFINE_STRUCT_LIST_PUSH_ELEM_HEAD_VA(NAME, T)
-    // define list_push_elem_tail_va
+    // define: push_elem_tail_va
     #define DEFINE_STRUCT_LIST_PUSH_ELEM_TAIL_VA(NAME, T)
-    // define list_pop_elem_head_va
+    // define: pop_elem_head_va
     #define DEFINE_STRUCT_LIST_POP_ELEM_HEAD_VA(NAME, T)
-    // define list_pop_elem_tail_va
+    // define: pop_elem_tail_va
     #define DEFINE_STRUCT_LIST_POP_ELEM_TAIL_VA(NAME, T)
 #endif
 
 
 #if defined(STRUCT_QUEUE)
-    // define list_enqueue
+    // define: enqueue
     #define DEFINE_STRUCT_LIST_ENQUEUE(NAME, T) \
         void NAME##_enqueue(struct NAME *_list, T _data) \
         STRUCT_BODY_LIST_PUSH_TAIL(NAME, T)
 
-    // define list_dequeue
+    // define: dequeue
     #define DEFINE_STRUCT_LIST_DEQUEUE(NAME, T) \
         int NAME##_dequeue(struct NAME *_list, T *_return) \
         STRUCT_BODY_LIST_POP_HEAD(NAME, T)
 
-    // define list_enqueue_elem
+    // define: enqueue_elem
     #define DEFINE_STRUCT_LIST_ENQUEUE_ELEM(NAME, T) \
         void NAME##_enqueue_elem(struct NAME *_list, struct NAME##_elem *_elem) \
         STRUCT_BODY_LIST_PUSH_ELEM_HEAD(NAME, T)
 
-    // define list_dequeue_elem
+    // define: dequeue_elem
     #define DEFINE_STRUCT_LIST_DEQUEUE_ELEM(NAME, T) \
         struct NAME##_elem *NAME##_dequeue_elem(struct NAME *_list) \
         STRUCT_BODY_LIST_POP_ELEM_TAIL(NAME, T)
 
     #if defined(STRUCT_VA)
-        // define list_enqueue_va
+        // define: enqueue_va
         #define DEFINE_STRUCT_LIST_ENQUEUE_VA(NAME, T) \
             void NAME##_enqueue_va(struct NAME *_list, T _key, ...) \
             STRUCT_BODY_LIST_PUSH_TAIL_VA(NAME, T)
 
-        // define list_dequeue_va
+        // define: dequeue_va
         #define DEFINE_STRUCT_LIST_DEQUEUE_VA(NAME, T) \
             int NAME##_dequeue_va(struct NAME *_list, ...) \
             STRUCT_BODY_LIST_POP_HEAD_VA(NAME, T)
 
-        // define list_enqueue_elem_va
+        // define: enqueue_elem_va
         #define DEFINE_STRUCT_LIST_ENQUEUE_ELEM_VA(NAME, T) \
             void NAME##_enqueue_elem_va(struct NAME *_list, ...) \
             STRUCT_BODY_LIST_PUSH_ELEM_TAIL_VA(NAME, T)
 
-        // define list_dequeue_elem_va
+        // define: dequeue_elem_va
         #define DEFINE_STRUCT_LIST_DEQUEUE_ELEM_VA(NAME, T) \
             int NAME##_dequeue_elem_va(struct NAME *_list, ...) \
             STRUCT_BODY_LIST_POP_ELEM_HEAD_VA(NAME, T)
     #else
-        // define list_enqueue_va
+        // define: enqueue_va
         #define DEFINE_STRUCT_LIST_ENQUEUE_VA(NAME, T)
-        // define list_dequeue_va
+        // define: dequeue_va
         #define DEFINE_STRUCT_LIST_DEQUEUE_VA(NAME, T)
-        // define list_enqueue_elem_va
+        // define: enqueue_elem_va
         #define DEFINE_STRUCT_LIST_ENQUEUE_ELEM_VA(NAME, T)
-        // define list_dequeue_elem_va
+        // define: dequeue_elem_va
         #define DEFINE_STRUCT_LIST_DEQUEUE_ELEM_VA(NAME, T)
     #endif
 #else
-    // define list_enqueue
+    // define: enqueue
     #define DEFINE_STRUCT_LIST_ENQUEUE(NAME, T)
-    // define list_dequeue
+    // define: dequeue
     #define DEFINE_STRUCT_LIST_DEQUEUE(NAME, T)
-    // define list_enqueue_elem
+    // define: enqueue_elem
     #define DEFINE_STRUCT_LIST_ENQUEUE_ELEM(NAME, T)
-    // define list_dequeue_elem
+    // define: dequeue_elem
     #define DEFINE_STRUCT_LIST_DEQUEUE_ELEM(NAME, T)
 
-    // define list_enqueue_va
+    // define: enqueue_va
     #define DEFINE_STRUCT_LIST_ENQUEUE_VA(NAME, T)
-    // define list_dequeue_va
+    // define: dequeue_va
     #define DEFINE_STRUCT_LIST_DEQUEUE_VA(NAME, T)
-    // define list_enqueue_elem_va
+    // define: enqueue_elem_va
     #define DEFINE_STRUCT_LIST_ENQUEUE_ELEM_VA(NAME, T)
-    // define list_dequeue_elem_va
+    // define: dequeue_elem_va
     #define DEFINE_STRUCT_LIST_DEQUEUE_ELEM_VA(NAME, T)
 
 #endif
 
 // define list stack
 #if defined(STRUCT_STACK)
-   // define list_push
+   // define: push
    #define DEFINE_STRUCT_LIST_PUSH(NAME, T) \
        void NAME##_push(struct NAME *_list, T _data) \
        STRUCT_BODY_LIST_PUSH_TAIL(NAME, T)
 
-    // define list_pop
+    // define: pop
     #define DEFINE_STRUCT_LIST_POP(NAME, T) \
         int NAME##_pop(struct NAME *_list, T *_return) \
        STRUCT_BODY_LIST_POP_TAIL(NAME, T)
 
-   // define list_push_elem
+   // define: push_elem
    #define DEFINE_STRUCT_LIST_PUSH_ELEM(NAME, T) \
-       void NAME##_push_elem(struct NAME *_list, struct NAME##_elem *_elem) \
-       STRUCT_BODY_LIST_PUSH_ELEM_TAIL(NAME, T)
+        void NAME##_push_elem(struct NAME *_list, struct NAME##_elem *_elem) \
+        STRUCT_BODY_LIST_PUSH_ELEM_TAIL(NAME, T)
 
-    // define list_pop_elem
+    // define: pop_elem
     #define DEFINE_STRUCT_LIST_POP_ELEM(NAME, T) \
         struct NAME##_elem *NAME##_pop_elem(struct NAME *_list) \
-       STRUCT_BODY_LIST_POP_ELEM_TAIL(NAME, T)
+        STRUCT_BODY_LIST_POP_ELEM_TAIL(NAME, T)
+
+    // cast: list_push
+    #define DEFINE_STRUCT_LIST_PUSH_CAST(NAME, SUFFIX, TS, TD) \
+        void NAME##_push##SUFFIX(struct NAME *_list, TD _data) { \
+            NAME##_push(_list, STRUCT_CAST(TS, _data)); \
+        }
+
+    // cast: list_pop
+    #define DEFINE_STRUCT_LIST_POP_BACKCAST(NAME, SUFFIX, TS, TD) \
+        int NAME##_pop##SUFFIX(struct NAME *_list, TD *_return) { \
+            TS _data; \
+            if (NAME##_pop(_list, &_data)) { \
+                *_return = STRUCT_BACKCAST(TD, _data); \
+                return 1; \
+            } \
+            return 0; \
+        }
 
     #if defined(STRUCT_VA)
-        // define list_push_va
+        // define: push_va
         #define DEFINE_STRUCT_LIST_PUSH_VA(NAME, T) \
             void NAME##_push_va(struct NAME *_list, T _key, ...) \
            STRUCT_BODY_LIST_PUSH_TAIL_VA(NAME, T)
 
-         // define list_pop_va
+         // define: pop_va
          #define DEFINE_STRUCT_LIST_POP_VA(NAME, T) \
             int NAME##_pop_va(struct NAME *_list, ...) \
             STRUCT_BODY_LIST_POP_TAIL_VA(NAME, T)
 
-        // define list_push_elem_va
+        // define: push_elem_va
         #define DEFINE_STRUCT_LIST_PUSH_ELEM_VA(NAME, T) \
             void NAME##_push_elem_va(struct NAME *_list, ...)  \
             STRUCT_BODY_LIST_PUSH_ELEM_TAIL_VA(NAME, T)
 
-         // define list_pop_elem_va
+         // define: pop_elem_va
          #define DEFINE_STRUCT_LIST_POP_ELEM_VA(NAME, T) \
             int NAME##_pop_elem_va(struct NAME *_list, ...)  \
             STRUCT_BODY_LIST_POP_ELEM_TAIL_VA(NAME, T)
         
     #else
-        // define list_push_va
+        // define: push_va
         #define DEFINE_STRUCT_LIST_PUSH_VA(NAME, T)
-        // define list_pop_va
+        // define: pop_va
         #define DEFINE_STRUCT_LIST_POP_VA(NAME, T)
-        // define list_push_elem_va
+        // define: push_elem_va
         #define DEFINE_STRUCT_LIST_PUSH_ELEM_VA(NAME, T)
-        // define list_pop_elem_va
+        // define: pop_elem_va
         #define DEFINE_STRUCT_LIST_POP_ELEM_VA(NAME, T)
     #endif
 #else
-    // define list_push
+    // define: push
     #define DEFINE_STRUCT_LIST_PUSH(NAME, T)
-    // define list_pop
+    // define: pop
     #define DEFINE_STRUCT_LIST_POP(NAME, T)
-    // define list_push_elem
+    // define: push_elem
     #define DEFINE_STRUCT_LIST_PUSH_ELEM(NAME, T)
-    // define list_pop_elem
+    // define: pop_elem
     #define DEFINE_STRUCT_LIST_POP_ELEM(NAME, T)
  
-    // define list_push_va
+    // define: push_va
     #define DEFINE_STRUCT_LIST_PUSH_VA(NAME, T)
-    // define list_pop_va
+    // define: pop_va
     #define DEFINE_STRUCT_LIST_POP_VA(NAME, T)
-    // define list_push_elem_va
+    // define: push_elem_va
     #define DEFINE_STRUCT_LIST_PUSH_ELEM_VA(NAME, T)
-    // define list_pop_elem_va
+    // define: pop_elem_va
     #define DEFINE_STRUCT_LIST_POP_ELEM_VA(NAME, T)
 #endif
 
 
 
 
-// define list_slice
+// define: slice
 #define DEFINE_STRUCT_LIST_SLICE(NAME, T) \
     struct NAME *NAME##_slice(struct NAME *_list, int _from, int _to) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME *_slice = (struct NAME*) STRUCT_CALLOC(1, struct NAME); \
         _slice->l_head = STRUCT_NULL; \
         _slice->l_tail = STRUCT_NULL; \
+        STRUCT_MUTEX_INIT(_slice->l_mutex); \
+        STRUCT_MT_SAFE_INIT(_slice->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head, *_elem = STRUCT_NULL; \
         int _count = 0; \
         while (_iter && (_count < _to || _to < 0)) {\
@@ -966,33 +1057,37 @@
             _iter = _iter->le_next; \
             _count += 1; \
         } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
         return _slice; \
     }
 
-// define list_concat
+// define: concat
 #define DEFINE_STRUCT_LIST_CONCAT(NAME, T) \
-    void NAME##_concat(struct NAME *_dest, struct NAME *_src) { \
-        struct NAME##_elem *_iter = _dest->l_head, *_elem = STRUCT_NULL; \
+    void NAME##_concat(struct NAME *_list, struct NAME *_src) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
+        struct NAME##_elem *_iter = _list->l_head, *_elem = STRUCT_NULL; \
         while (_iter) { \
             _elem = (struct NAME##_elem*) STRUCT_CALLOC(1, struct NAME##_elem); \
             _elem->le_next = STRUCT_NULL; \
             _elem->le_next = STRUCT_NULL; \
             STRUCT_ASSIGN(_elem->le_data, _iter->le_data); \
-            if (_dest->l_tail) { \
-                _elem->le_prev = _dest->l_tail; \
-                _dest->l_tail->le_next = _elem; \
-                _dest->l_tail = _elem; \
+            if (_list->l_tail) { \
+                _elem->le_prev = _list->l_tail; \
+                _list->l_tail->le_next = _elem; \
+                _list->l_tail = _elem; \
             } else { \
-                _dest->l_head = _elem; \
-                _dest->l_tail = _elem; \
+                _list->l_head = _elem; \
+                _list->l_tail = _elem; \
             } \
             _iter = _iter->le_next; \
         } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
-// define list_reverse
+// define: reverse
 #define DEFINE_STRUCT_LIST_REVERSE(NAME, T) \
     void NAME##_reverse(struct NAME *_list) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head, *_next, *_tmp; \
         while (_iter) { \
             _next = _iter->le_next; \
@@ -1004,11 +1099,13 @@
         _tmp = _list->l_head; \
         _list->l_head = _list->l_tail; \
         _list->l_tail = _tmp; \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
-// define list_trunacte
+// define: trunacte
 #define DEFINE_STRUCT_LIST_TRUNCATE(NAME, T) \
     void NAME##_truncate(struct NAME* _list, int _head, int _tail) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter, *_next, *_prev; \
         for (_iter = _list->l_head; _head > 0 && _list->l_head; _head -= 1) { \
             _next = _iter->le_next; \
@@ -1034,12 +1131,18 @@
             STRUCT_FREE(_iter); \
             _iter = _prev; \
         } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
-// define list_cut
+// define: cut
 #define DEFINE_STRUCT_LIST_CUT(NAME, T) \
     struct NAME* NAME##_cut(struct NAME* _list, int _from, int _to) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME *_cut = (struct NAME*) STRUCT_CALLOC(1, struct NAME); \
+        _cut->l_head = STRUCT_NULL; \
+        _cut->l_tail = STRUCT_NULL; \
+        STRUCT_MUTEX_INIT(_cut->l_mutex); \
+        STRUCT_MT_SAFE_INIT(_cut->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head, *_next; \
         int _count = 0; \
         while (_iter && (_count < _to || _to < 0)) { \
@@ -1079,54 +1182,64 @@
             _iter = _next; \
             _count += 1; \
         } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
         return _cut; \
     }
 
-// define list_for_each
+// define: for_each
 #define DEFINE_STRUCT_LIST_FOR_EACH(NAME, T)  \
     void NAME##_for_each(struct NAME *_list, void (*_func)(T)) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head; \
         while (_iter) { \
             _func(_iter->le_data); \
             _iter = _iter->le_next; \
         } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
-// define list_for_each_elem
+// define: for_each_elem
 #define DEFINE_STRUCT_LIST_FOR_EACH_ELEM(NAME, T)  \
     void NAME##_for_each_elem(struct NAME *_list, void (*_func)(struct NAME##_elem*)) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head, *_next; \
         while (_iter) { \
             _next = _iter->le_next; \
             _func(_iter); \
             _iter = _next; \
         } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
-// define list_for_each_data
+// define: for_each_data
 #define DEFINE_STRUCT_LIST_FOR_EACH_DATA(NAME, T, TD)  \
     void NAME##_for_each_data(struct NAME *_list, void (*_func)(T, TD), TD _data) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head; \
         while (_iter) { \
             _func(_iter->le_data, _data); \
             _iter = _iter->le_next; \
         } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
-// define list_for_each_elem_data
+// define: for_each_elem_data
 #define DEFINE_STRUCT_LIST_FOR_EACH_ELEM_DATA(NAME, T, TD)  \
     void NAME##_for_each_elem_data(struct NAME *_list, void (*_func)(struct NAME##_elem*, TD), TD _data) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head, *_next; \
         while (_iter) { \
             _next = _iter->le_next; \
             _func(_iter, _data); \
             _iter = _next; \
         } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
-// define list_remove_elem
+// define: remove_elem
 #define DEFINE_STRUCT_LIST_REMOVE_ELEM(NAME, T) \
     struct NAME##_elem *NAME##_remove_elem(struct NAME *_list, struct NAME##_elem *_elem) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         if (_elem == _list->l_head && _list->l_head == _list->l_tail) { \
             _list->l_head = STRUCT_NULL; \
             _list->l_tail = STRUCT_NULL; \
@@ -1144,12 +1257,15 @@
             _elem->le_next = STRUCT_NULL; \
             _elem->le_prev = STRUCT_NULL; \
         } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
         return _elem; \
     }
 
-// define list_remove_at
+// define: remove_at
 #define DEFINE_STRUCT_LIST_REMOVE_AT(NAME, T) \
     int NAME##_remove_at(struct NAME *_list, T *_data, int _at) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
+        int _count = 0; \
         struct NAME##_elem *_iter = _list->l_head, *_next; \
         while (_iter && _at >= 0) { \
             _next = _iter->le_next; \
@@ -1174,18 +1290,21 @@
                         STRUCT_ASSIGN(*_data, _iter->le_data); \
                     } \
                     STRUCT_FREE(_iter); \
-                    return STRUCT_SUCCESS; \
+                    _count = 1; \
+                    break; \
                 } \
             } \
             _iter = _next; \
             _at -= 1; \
         } \
-        return STRUCT_FAILURE; \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
+        return _count; \
     }
 
-// define list_remove_elem_at
+// define: remove_elem_at
 #define DEFINE_STRUCT_LIST_REMOVE_ELEM_AT(NAME, T) \
     struct NAME##_elem *NAME##_remove_elem_at(struct NAME *_list, int _at) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head, *_next; \
         while (_iter && _at >= 0) { \
             _next = _iter->le_next; \
@@ -1208,49 +1327,57 @@
                     } \
                     _iter->le_next = STRUCT_NULL; \
                     _iter->le_prev = STRUCT_NULL; \
-                    return _iter;\
+                    break; \
                 } \
             } \
             _iter = _next; \
             _at -= 1; \
         } \
-        return STRUCT_NULL; \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
+        return _iter; \
     }
 
-// define list_at
+// define: at
 #define DEFINE_STRUCT_LIST_AT(NAME, T) \
     int NAME##_at(struct NAME *_list, T *_data, int _at) { \
+        int _count = 0; \
         if (! _data) \
-            return 0; \
+            return _count; \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head; \
         while (_iter && _at >= 0) { \
             if (_at == 0) { \
                 STRUCT_ASSIGN(*_data, _iter->le_data); \
-                return 1; \
+                _count = 1; \
+                break; \
             } \
             _iter = _iter->le_next; \
             _at -= 1; \
         } \
-        return 0; \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
+        return _count; \
     } \
 
-// define list_elem_at
+// define: elem_at
 #define DEFINE_STRUCT_LIST_ELEM_AT(NAME, T) \
     struct NAME##_elem *NAME##_elem_at(struct NAME *_list, int _at) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head; \
         while (_iter && _at >= 0) { \
             if (_at == 0) { \
-                return _iter; \
+                break; \
             } \
             _iter = _iter->le_next; \
             _at -= 1; \
         } \
-        return STRUCT_NULL; \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
+        return _iter; \
     } \
 
-// define list_insert_at
+// define: insert_at
 #define DEFINE_STRUCT_LIST_INSERT_AT(NAME, T) \
     void NAME##_insert_at(struct NAME *_list, T _data, int _at) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter, *_elem; \
         _elem = (struct NAME##_elem*) STRUCT_CALLOC(1, struct NAME##_elem); \
         _elem->le_next = STRUCT_NULL; \
@@ -1278,11 +1405,13 @@
             _elem->le_next = _iter->le_next; \
             _iter->le_next = _elem; \
         } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
-// define list_insert_elem_at
+// define: insert_elem_at
 #define DEFINE_STRUCT_LIST_INSERT_ELEM_AT(NAME, T) \
     void NAME##_insert_elem_at(struct NAME *_list, struct NAME##_elem *_elem, int _at) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter; \
         _elem->le_next = STRUCT_NULL; \
         _elem->le_prev = STRUCT_NULL; \
@@ -1308,11 +1437,13 @@
             _elem->le_next = _iter->le_next; \
             _iter->le_next = _elem; \
         } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
-// define list_insert_sorted_by
+// define: insert_sorted_by
 #define DEFINE_STRUCT_LIST_INSERT_SORTED_BY(NAME, T) \
     void NAME##_insert_sorted_by(struct NAME *_list, T _data, int (*_less)(T, T)) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter, *_elem; \
         _elem = (struct NAME##_elem*) STRUCT_CALLOC(1, struct NAME##_elem); \
         _elem->le_next = STRUCT_NULL; \
@@ -1339,11 +1470,13 @@
             _elem->le_next = _iter->le_next; \
             _iter->le_next = _elem; \
         } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
-// define list_insert_sorted_elem_by
+// define: insert_sorted_elem_by
 #define DEFINE_STRUCT_LIST_INSERT_SORTED_ELEM_BY(NAME, T) \
     void NAME##_insert_sorted_elem_by(struct NAME *_list, struct NAME##_elem *_elem, int (*_less)(T, T)) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter; \
         _elem->le_next = STRUCT_NULL; \
         _elem->le_prev = STRUCT_NULL; \
@@ -1368,34 +1501,40 @@
             _elem->le_next = _iter->le_next; \
             _iter->le_next = _elem; \
         } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
-// define list_insert_elem_after_elem
+// define: insert_elem_after_elem
 #define DEFINE_STRUCT_LIST_INSERT_ELEM_AFTER_ELEM(NAME, T) \
     void NAME##_insert_elem_after_elem(struct NAME *_list, struct NAME##_elem *_after, struct NAME##_elem *_elem) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         _elem->le_prev = _after; \
         _elem->le_next = _after->le_next; \
         _after->le_next = _elem; \
         if (_after == _list->l_tail) { \
             _list->l_tail = _elem; \
         }  \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
 
-// define list_insert_elem_before_elem
+// define: insert_elem_before_elem
 #define DEFINE_STRUCT_LIST_INSERT_ELEM_BEFORE_ELEM(NAME, T) \
     void NAME##_insert_elem_before_elem(struct NAME *_list, struct NAME##_elem *_before, struct NAME##_elem *_elem) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         _elem->le_next = _before; \
         _elem->le_prev = _before->le_prev; \
         _before->le_prev = _elem; \
         if (_before == _list->l_head) { \
             _list->l_head = _elem; \
         } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
-// define list_sort_by
+// define: sort_by
 #define DEFINE_STRUCT_LIST_SORT_BY(NAME, T) \
     void NAME##_sort_by(struct NAME *_list, int (*_less)(T, T)) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_head = STRUCT_NULL, *_tail = STRUCT_NULL, *_iter = _list->l_head, *_next, *_elem; \
         while (_iter){ \
             _next = _iter->le_next; \
@@ -1427,11 +1566,13 @@
         } \
         _list->l_head = _head; \
         _list->l_tail = _tail; \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
-// define list_sort_by_data
+// define: sort_by_data
 #define DEFINE_STRUCT_LIST_SORT_BY_DATA(NAME, T, TD) \
     void NAME##_sort_by_data(struct NAME *_list, int (*_less)(T, T, TD), TD _data) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_head = STRUCT_NULL, *_tail = STRUCT_NULL, *_iter = _list->l_head, *_next, *_elem; \
         while (_iter){ \
             _next = _iter->le_next; \
@@ -1463,48 +1604,57 @@
         } \
         _list->l_head = _head; \
         _list->l_tail = _tail; \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
-// define list_map
+// define: map
 #define DEFINE_STRUCT_LIST_MAP(NAME, T) \
     void NAME##_map(struct NAME *_list, T (*_map)(T)) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head; \
         while (_iter) { \
             STRUCT_ASSIGN(_iter->le_data, _map(_iter->le_data)); \
             _iter = _iter->le_next; \
         } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
-// define list_map_data
+// define: map_data
 #define DEFINE_STRUCT_LIST_MAP_DATA(NAME, T, TD) \
     void NAME##_map_data(struct NAME *_list, T (*_map)(T, TD), TD _data) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head; \
         while (_iter) { \
             STRUCT_ASSIGN(_iter->le_data, _map(_iter->le_data, _data)); \
             _iter = _iter->le_next; \
         } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
-// define list_map_elem
+// define: map_elem
 #define DEFINE_STRUCT_LIST_MAP_ELEM(NAME, T) \
     void NAME##_map_elem(struct NAME *_list, void (*_map)(struct NAME##_elem*)) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head, *_next; \
         while (_iter) { \
             _next = _iter->le_next; \
             _map(_iter); \
             _iter = _next; \
         } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
-// define list_map_elem_data
+// define: map_elem_data
 #define DEFINE_STRUCT_LIST_MAP_ELEM_DATA(NAME, T, TD) \
     void NAME##_map_elem_data(struct NAME *_list, void (*_map)(struct NAME##_elem*, TD), TD _data) { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head, *_next; \
         while (_iter) { \
             _next = _iter->le_next; \
             _map(_iter, _data); \
             _iter = _next; \
         } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
 // define: list queue
@@ -1567,6 +1717,14 @@
     DEFINE_STRUCT_LIST_DEQUEUE_ELEM_HEAD_VA(NAME, T) \
     DEFINE_STRUCT_LIST_DEQUEUE_ELEM_TAIL_VA(NAME, T) \
 
+// cast: list stack
+#define DEFINE_STRUCT_LIST_STACK_CAST(NAME, SUFFIX, TS, TD) \
+    DEFINE_STRUCT_LIST_PUSH_CAST(NAME, SUFFIX, TS, TD) \
+
+// backcast: list stack
+#define DEFINE_STRUCT_LIST_STACK_BACKCAST(NAME, SUFFIX, TS, TD) \
+    DEFINE_STRUCT_LIST_POP_BACKCAST(NAME, SUFFIX, TS, TD)
+
 #define DEFINE_STRUCT_LIST_BULK_FOR_EACH(NAME, T) \
 
 // define: list
@@ -1579,6 +1737,8 @@
     DEFINE_STRUCT_LIST_FREE(NAME, T) \
     DEFINE_STRUCT_LIST_HEAD(NAME, T) \
     DEFINE_STRUCT_LIST_TAIL(NAME, T) \
+    DEFINE_STRUCT_LIST_LOCK(NAME, T) \
+    DEFINE_STRUCT_LIST_UNLOCK(NAME, T) \
     \
     DEFINE_STRUCT_LIST_ELEM_NEW(NAME, T) \
     DEFINE_STRUCT_LIST_ELEM_INIT(NAME, T) \
@@ -1650,4 +1810,9 @@
     DEFINE_STRUCT_LIST_DELETE_ALL_BY_DATA(NAME, T)
     DEFINE_STRUCT_LIST_REDUCE(NAME, T)
     DEFINE_STRUCT_LIST_ROTATE(NAME, T)
+
+    SHIFT_LEFT
+    SHIFT_RIGHT
+    ROTATE_LEFT
+    ROTATE_RIGHT
 */
