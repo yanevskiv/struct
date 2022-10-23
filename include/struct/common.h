@@ -52,6 +52,10 @@
 
 
 // threads
+#if defined(_PTHREAD_H)
+    #define STRUCT_THREADS
+    #include "pthread.h"
+#endif
 #if !defined(STRUCT_THREADS) 
     //  remove invalid
     #undef STRUCT_MUTEX_DECLARE
@@ -168,8 +172,22 @@
         STRUCT_ATTRIB_CUSTOM
 #endif
 
-// blank value 
-#if !defined(STRUCT_BLANK)
-    #define STRUCT_BLANK 0
+// zero value 
+#if !defined(STRUCT_ZERO)
+    #define STRUCT_ZERO 0
 #endif
 
+// value of one
+#if !defined(STRUCT_ONE)
+    #define STRUCT_ONE 1
+#endif
+
+// invalid value (defaults to zero)
+#if !defined(STRUCT_INVALID)
+    #define STRUCT_INVALID STRUCT_ZERO
+#endif
+
+// generic data
+#if !defined(STRUCT_GENERIC_DATA)
+    #define STRUCT_GENERIC_DATA void*
+#endif

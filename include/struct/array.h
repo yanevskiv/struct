@@ -63,6 +63,34 @@
         STRUCT_FREE(_array); \
     }
 
+// define: lock
+#define DEFINE_STRUCT_ARRAY_LOCK(NAME, T) \
+    STRUCT_ATTRIB void NAME##_lock(struct NAME *_array) \
+    { \
+        STRUCT_MUTEX_LOCK(_array->a_mutex) \
+    }
+
+// define: unlock
+#define DEFINE_STRUCT_ARRAY_UNLOCK(NAME, T) \
+    STRUCT_ATTRIB void NAME##_unlock(struct NAME *_array) \
+    { \
+        STRUCT_MUTEX_UNLOCK(_array->a_mutex) \
+    }
+
+// define: mt_safe_lock
+#define DEFINE_STRUCT_ARRAY_MT_SAFE_LOCK(NAME, T) \
+    STRUCT_ATTRIB void NAME##_mt_safe_lock(struct NAME *_array) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_array->a_mutex) \
+    }
+
+// define: mt_safe_unlock
+#define DEFINE_STRUCT_ARRAY_MT_SAFE_UNLOCK(NAME, T) \
+    STRUCT_ATTRIB void NAME##_mt_safe_unlock(struct NAME *_array) \
+    { \
+        STRUCT_MT_SAFE_UNLOCK(_array->a_mutex) \
+    }
+
 // define: clone
 #define DEFINE_STRUCT_ARRAY_CLONE(NAME, T) \
     STRUCT_ATTRIB struct NAME *NAME##_clone(struct NAME *_array) \
@@ -324,19 +352,184 @@
         STRUCT_MT_SAFE_UNLOCK(_array->a_mt_safe) \
     }
 
-// define: lock
-#define DEFINE_STRUCT_ARRAY_LOCK(NAME, T) \
-    STRUCT_ATTRIB void NAME##_lock(struct NAME *_array) \
+// body: void for_each(NAME *_array [, TD _data], [, int _i])
+#define DEFINE_STRUCT_ARRAY_FOR_EACH_BODY(NAME, T, FUNC) \
     { \
-        STRUCT_MUTEX_LOCK(_array->a_mutex) \
+        STRUCT_MT_SAFE_LOCK(_array->a_mt_safe) \
+        int _index, _size = _array->a_size; \
+        for (_index = 0; _index < _size; _index++) { \
+            FUNC(_array->a_data[_index]); \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_array->a_mt_safe) \
     }
 
-// define: unlock
-#define DEFINE_STRUCT_ARRAY_UNLOCK(NAME, T) \
-    STRUCT_ATTRIB void NAME##_unlock(struct NAME *_array) \
+
+#define DEFINE_STRUCT_ARRAY_FOR_EACH(NAME, T) \
+    STRUCT_ATTRIB void NAME##_for_each(struct NAME *_array, void (*_func)(T)) \
     { \
-        STRUCT_MUTEX_UNLOCK(_array->a_mutex) \
+        STRUCT_MT_SAFE_LOCK(_array->a_mt_safe) \
+        int _i, _size = _array->a_size; \
+        for (_i = 0; _i < _size; _i++) { \
+            _func(_array->a_data[_i]); \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_array->a_mt_safe) \
     }
+
+
+// define: for_each_data
+#define DEFINE_STRUCT_ARRAY_FOR_EACH_DATA(NAME, T, TD) \
+    STRUCT_ATTRIB void NAME##_for_each_data(struct NAME *_array, void (*_func)(T, TD), TD _data) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_array->a_mt_safe) \
+        int _i, _size = _array->a_size; \
+        for (_i = 0; _i < _size; _i++) { \
+            _func(_array->a_data[_i], _data); \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_array->a_mt_safe) \
+    }
+
+// define: for_each_index
+#define DEFINE_STRUCT_ARRAY_FOR_EACH_INDEX(NAME, T) \
+    STRUCT_ATTRIB void NAME##_for_each_index(struct NAME *_array, void (*_func)(T, int)) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_array->a_mt_safe) \
+        int _i, _size = _array->a_size; \
+        for (_i = 0; _i < _size; _i++) { \
+            _func(_array->a_data[_i], _i); \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_array->a_mt_safe) \
+    }
+
+
+// define: for_each_index_data
+#define DEFINE_STRUCT_ARRAY_FOR_EACH_DATA_INDEX(NAME, T, TD) \
+    STRUCT_ATTRIB void NAME##_for_each_data_idnex(struct NAME *_array, void (*_func)(T, TD, int), TD _data) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_array->a_mt_safe) \
+        int _i, _size = _array->a_size; \
+        for (_i = 0; _i < _size; _i++) { \
+            _func(_array->a_data[_i], _data, _i); \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_array->a_mt_safe) \
+    }
+
+
+// define: for_each_addr
+#define DEFINE_STRUCT_ARRAY_FOR_EACH_ADDR(NAME, T) \
+    STRUCT_ATTRIB void NAME##_for_each_addr(struct NAME *_array, void (*_func)(T*)) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_array->a_mt_safe) \
+        int _i, _size = _array->a_size; \
+        for (_i = 0; _i < _size; _i++) { \
+            _func(&(_array->a_data[_i])); \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_array->a_mt_safe) \
+    }
+
+// define: for_each_addr_data
+#define DEFINE_STRUCT_ARRAY_FOR_EACH_ADDR_DATA(NAME, T, TD) \
+    STRUCT_ATTRIB void NAME##_for_each_addr_data(struct NAME *_array, void (*_func)(T*, TD), TD _data) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_array->a_mt_safe) \
+        int _i, _size = _array->a_size; \
+        for (_i = 0; _i < _size; _i++) { \
+            _func(&(_array->a_data[_i]), _data); \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_array->a_mt_safe) \
+    }
+
+// define: for_each_addr_index
+#define DEFINE_STRUCT_ARRAY_FOR_EACH_ADDR_INDEX(NAME, T) \
+    STRUCT_ATTRIB void NAME##_for_each_addr_index(struct NAME *_array, void (*_func)(T*, int)) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_array->a_mt_safe) \
+        int _i, _size = _array->a_size; \
+        for (_i = 0; _i < _size; _i++) { \
+            _func(&(_array->a_data[_i]), _i); \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_array->a_mt_safe) \
+    }
+
+// define: for_each_addr_index_data
+#define DEFINE_STRUCT_ARRAY_FOR_EACH_ADDR_INDEX_DATA(NAME, T, TD) \
+    STRUCT_ATTRIB void NAME##_for_each_index_addr_data(struct NAME *_array, void (*_func)(T*, TD, int), TD _data) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_array->a_mt_safe) \
+        int _i, _size = _array->a_size; \
+        for (_i = 0; _i < _size; _i++) { \
+            _func(&(_array->a_data[_i]), _data, _i); \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_array->a_mt_safe) \
+    }
+
+// define: reduce
+#define DEFINE_STRUCT_ARRAY_REDUCE(NAME, T) \
+    STRUCT_ATTRIB T NAME##_reduce(struct NAME *_array, T (*_func)(T, T))\
+    { \
+        STRUCT_MT_SAFE_LOCK(_array->a_mt_safe) \
+        T _return = STRUCT_INVALID; \
+        if (_array->a_size > 0) { \
+            STRUCT_ASSIGN(_return, _array->a_data[0]); \
+            int _i, _size = _array->a_size; \
+            for (_i = 1; _i < _size; _i++) { \
+                STRUCT_ASSIGN(_return, _func(_return, _array->a_data[_i])); \
+            } \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_array->a_mt_safe) \
+        return _return; \
+    }
+
+// define: reduce_data
+#define DEFINE_STRUCT_ARRAY_REDUCE_DATA(NAME, T, SUFFIX, TD) \
+    STRUCT_ATTRIB int NAME##_reduce##SUFFIX(struct NAME *_array, T (*_func)(T, T, TD), TD _data)\
+    { \
+        STRUCT_MT_SAFE_LOCK(_array->a_mt_safe) \
+        T _return = STRUCT_INVALID; \
+        if (_array->a_size > 0) { \
+            int _i, _size = _array->a_size; \
+            STRUCT_ASSIGN(_return, _array->a_data[0]); \
+            for (_i = 1; _i < _size; _i++) { \
+                STRUCT_ASSIGN(_return, _func(_return, _array->a_data[_i], _data)); \
+            } \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_array->a_mt_safe) \
+        return _return; \
+    }
+
+// Custom user-made functions
+// define custom: reduce
+#define DEFINE_STRUCT_ARRAY_CUSTOM_REDUCE(NAME, T, FNAME, FUNC) \
+    STRUCT_ATTRIB T NAME##FNAME(struct NAME *_array)\
+    { \
+        STRUCT_MT_SAFE_LOCK(_array->a_mt_safe) \
+        T _return = STRUCT_INVALID; \
+        if (_array->a_size > 0) {\
+            int _i, _size = _array->a_size; \
+            STRUCT_ASSIGN(_return, _array->a_data[0]); \
+            for (_i = 1; _i < _size; _i++) { \
+                do { \
+                    STRUCT_ASSIGN(_return, FUNC(_return, _array->a_data[_i])); \
+                } while (0); \
+            } \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_array->a_mt_safe) \
+        return _return; \
+    }
+
+// define custom: for_each_addr
+#define DEFINE_STRUCT_ARRAY_CUSTOM_FOR_EACH(NAME, T, FNAME, FUNC) \
+    STRUCT_ATTRIB void NAME##FNAME(struct NAME *_array)\
+    { \
+        STRUCT_MT_SAFE_LOCK(_array->a_mt_safe) \
+        int _i, _size = _array->a_size; \
+        for (_i = 0; _i < _size; _i++) { \
+            do { \
+                FUNC((_array->a_data[_i])); \
+            } while (0); \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_array->a_mt_safe) \
+    }
+
 
 #define DEFINE_STRUCT_ARRAY(NAME, T) \
     DEFINE_STRUCT_ARRAY_TYPEDEF(NAME, T) \
@@ -345,8 +538,11 @@
     DEFINE_STRUCT_ARRAY_INIT(NAME, T) \
     DEFINE_STRUCT_ARRAY_DESTROY(NAME, T) \
     DEFINE_STRUCT_ARRAY_FREE(NAME, T) \
+    \
     DEFINE_STRUCT_ARRAY_LOCK(NAME, T) \
     DEFINE_STRUCT_ARRAY_UNLOCK(NAME, T) \
+    DEFINE_STRUCT_ARRAY_MT_SAFE_LOCK(NAME, T) \
+    DEFINE_STRUCT_ARRAY_MT_SAFE_UNLOCK(NAME, T) \
     \
     DEFINE_STRUCT_ARRAY_CLONE(NAME, T) \
     DEFINE_STRUCT_ARRAY_SLICE(NAME, T) \
@@ -366,8 +562,21 @@
     DEFINE_STRUCT_ARRAY_GET(NAME, T) \
     DEFINE_STRUCT_ARRAY_SET(NAME, T) \
     \
+    DEFINE_STRUCT_ARRAY_FOR_EACH(NAME, T) \
+    DEFINE_STRUCT_ARRAY_FOR_EACH_DATA(NAME, T, void*) \
+    DEFINE_STRUCT_ARRAY_FOR_EACH_INDEX(NAME, T) \
+    DEFINE_STRUCT_ARRAY_FOR_EACH_DATA_INDEX(NAME, T, void*) \
+    \
+    DEFINE_STRUCT_ARRAY_FOR_EACH_ADDR(NAME, T) \
+    DEFINE_STRUCT_ARRAY_FOR_EACH_ADDR_DATA(NAME, T, void*) \
+    DEFINE_STRUCT_ARRAY_FOR_EACH_ADDR_INDEX(NAME, T) \
+    DEFINE_STRUCT_ARRAY_FOR_EACH_ADDR_INDEX_DATA(NAME, T, void*) \
+    \
+    DEFINE_STRUCT_ARRAY_REDUCE(NAME, T) \
+    DEFINE_STRUCT_ARRAY_REDUCE_DATA(NAME, T, _data, void*) \
 
 /*
+TODO:
     DEFINE_STRUCT_ARRAY_GET(NAME, T) \
     DEFINE_STRUCT_ARRAY_GET_V(NAME, T) \
     DEFINE_STRUCT_ARRAY_GET_VL(NAME, T) \

@@ -27,7 +27,8 @@
 
 // define: new
 #define DEFINE_STRUCT_LIST_NEW(NAME, T) \
-    STRUCT_ATTRIB struct NAME *NAME##_new() { \
+    STRUCT_ATTRIB struct NAME *NAME##_new()\
+    { \
         struct NAME *_list = (struct NAME*) STRUCT_CALLOC(1, struct NAME); \
         _list->l_head = STRUCT_NULL; \
         _list->l_tail = STRUCT_NULL; \
@@ -38,7 +39,8 @@
 
 // define init
 #define DEFINE_STRUCT_LIST_INIT(NAME, T) \
-    STRUCT_ATTRIB struct NAME *NAME##_init(struct NAME *_list) { \
+    STRUCT_ATTRIB struct NAME *NAME##_init(struct NAME *_list)\
+    { \
         _list->l_head = STRUCT_NULL; \
         _list->l_tail = STRUCT_NULL; \
         STRUCT_MUTEX_INIT(_list->l_mutex); \
@@ -48,7 +50,8 @@
 
 // define: destroy
 #define DEFINE_STRUCT_LIST_DESTROY(NAME, T) \
-    STRUCT_ATTRIB void NAME##_destroy(struct NAME *_list) { \
+    STRUCT_ATTRIB void NAME##_destroy(struct NAME *_list)\
+    { \
         struct NAME##_elem *_iter = _list->l_head, *_next; \
         while (_iter) { \
             _next = _iter->le_next; \
@@ -63,7 +66,8 @@
 
 // define: free
 #define DEFINE_STRUCT_LIST_FREE(NAME, T) \
-    STRUCT_ATTRIB void NAME##_free(struct NAME *_list) { \
+    STRUCT_ATTRIB void NAME##_free(struct NAME *_list)\
+    { \
         struct NAME##_elem *_iter = _list->l_head, *_next; \
         while (_iter) { \
             _next = _iter->le_next; \
@@ -77,7 +81,8 @@
 
 // define: head
 #define DEFINE_STRUCT_LIST_HEAD(NAME, T) \
-    STRUCT_ATTRIB struct NAME##_elem *NAME##_head(struct NAME *_list) { \
+    STRUCT_ATTRIB struct NAME##_elem *NAME##_head(struct NAME *_list)\
+    { \
         struct NAME##_elem *_return; \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         _return = _list->l_head; \
@@ -87,7 +92,8 @@
 
 // define: tail
 #define DEFINE_STRUCT_LIST_TAIL(NAME, T) \
-    STRUCT_ATTRIB struct NAME##_elem *NAME##_tail(struct NAME *_list) { \
+    STRUCT_ATTRIB struct NAME##_elem *NAME##_tail(struct NAME *_list)\
+    { \
         struct NAME##_elem *_return; \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         _return = _list->l_tail; \
@@ -109,9 +115,24 @@
         STRUCT_MUTEX_UNLOCK(_list->l_mutex); \
     }
 
+// define: mt_safe_lock
+#define DEFINE_STRUCT_LIST_MT_SAFE_LOCK(NAME, T) \
+    STRUCT_ATTRIB void NAME##_mt_safe_lock(struct NAME *_list) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mutex); \
+    }
+
+// define: mt_safe_unlock
+#define DEFINE_STRUCT_LIST_MT_SAFE_UNLOCK(NAME, T) \
+    STRUCT_ATTRIB void NAME##_mt_safe_unlock(struct NAME *_list) \
+    { \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mutex); \
+    }
+
 // define: elem_new
 #define DEFINE_STRUCT_LIST_ELEM_NEW(NAME, T) \
-    STRUCT_ATTRIB struct NAME##_elem *NAME##_elem_new(T _data) { \
+    STRUCT_ATTRIB struct NAME##_elem *NAME##_elem_new(T _data)\
+    { \
         struct NAME##_elem *_elem = (struct NAME##_elem*) STRUCT_CALLOC(1, struct NAME##_elem); \
         _elem->le_next = STRUCT_NULL; \
         _elem->le_prev = STRUCT_NULL; \
@@ -121,7 +142,8 @@
 
 // define: elem_init
 #define DEFINE_STRUCT_LIST_ELEM_INIT(NAME, T) \
-    STRUCT_ATTRIB void NAME##_elem_init(struct NAME##_elem *_elem , T _data) { \
+    STRUCT_ATTRIB void NAME##_elem_init(struct NAME##_elem *_elem , T _data)\
+    { \
         _elem->le_next = STRUCT_NULL; \
         _elem->le_prev = STRUCT_NULL; \
         STRUCT_ASSIGN(_elem->le_data, _data); \
@@ -129,14 +151,16 @@
 
 // define: elem_destroy
 #define DEFINE_STRUCT_LIST_ELEM_DESTROY(NAME, T) \
-    STRUCT_ATTRIB void NAME##_elem_destroy(struct NAME##_elem *_elem) { \
+    STRUCT_ATTRIB void NAME##_elem_destroy(struct NAME##_elem *_elem)\
+    { \
         _elem->le_prev = STRUCT_NULL; \
         _elem->le_next = STRUCT_NULL; \
     }
 
 // define: elem_free
 #define DEFINE_STRUCT_LIST_ELEM_FREE(NAME, T) \
-    STRUCT_ATTRIB void NAME##_elem_free(struct NAME##_elem *_elem) { \
+    STRUCT_ATTRIB void NAME##_elem_free(struct NAME##_elem *_elem)\
+    { \
         _elem->le_prev = STRUCT_NULL; \
         _elem->le_next = STRUCT_NULL; \
         STRUCT_FREE(_elem); \
@@ -144,37 +168,43 @@
 
 // define: elem_prev
 #define DEFINE_STRUCT_LIST_ELEM_PREV(NAME, T) \
-    STRUCT_ATTRIB struct NAME##_elem *NAME##_elem_prev(struct NAME##_elem *_elem) { \
+    STRUCT_ATTRIB struct NAME##_elem *NAME##_elem_prev(struct NAME##_elem *_elem)\
+    { \
         return _elem->le_prev; \
     }
 
 // define: elem_next
 #define DEFINE_STRUCT_LIST_ELEM_NEXT(NAME, T) \
-    STRUCT_ATTRIB struct NAME##_elem *NAME##_elem_next(struct NAME##_elem *_elem) { \
+    STRUCT_ATTRIB struct NAME##_elem *NAME##_elem_next(struct NAME##_elem *_elem)\
+    { \
         return _elem->le_next; \
     }
 
 // define: elem_data
 #define DEFINE_STRUCT_LIST_ELEM_DATA(NAME, T) \
-    STRUCT_ATTRIB T NAME##_elem_data(struct NAME##_elem *_elem) { \
+    STRUCT_ATTRIB T NAME##_elem_data(struct NAME##_elem *_elem)\
+    { \
         return _elem->le_data; \
     }
 
 // define: elem_set
 #define DEFINE_STRUCT_LIST_ELEM_SET(NAME, T) \
-    STRUCT_ATTRIB void NAME##_elem_set(struct NAME##_elem *_elem, T _data) { \
+    STRUCT_ATTRIB void NAME##_elem_set(struct NAME##_elem *_elem, T _data)\
+    { \
         STRUCT_ASSIGN(_elem->le_data, _data); \
     }
 
 // define: empty
 #define DEFINE_STRUCT_LIST_EMPTY(NAME, T) \
-    STRUCT_ATTRIB int NAME##_empty(struct NAME *_list) { \
+    STRUCT_ATTRIB int NAME##_empty(struct NAME *_list)\
+    { \
         return _list->l_head == STRUCT_NULL; \
     }
 
 // define: count
 #define DEFINE_STRUCT_LIST_COUNT(NAME, T) \
-    STRUCT_ATTRIB int NAME##_count(struct NAME *_list) { \
+    STRUCT_ATTRIB int NAME##_count(struct NAME *_list)\
+    { \
         int _count = 0; \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head; \
@@ -188,13 +218,14 @@
 
 // define: clone
 #define DEFINE_STRUCT_LIST_CLONE(NAME, T)  \
-    STRUCT_ATTRIB struct NAME *NAME##_clone(struct NAME *_list) { \
+    STRUCT_ATTRIB struct NAME *NAME##_clone(struct NAME *_list)\
+    { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME *_clone = (struct NAME*) STRUCT_CALLOC(1, struct NAME); \
         _clone->l_head = STRUCT_NULL; \
         _clone->l_tail = STRUCT_NULL; \
         STRUCT_MUTEX_INIT(_clone->l_mutex); \
         STRUCT_MT_SAFE_INIT(_clone->l_mt_safe); \
-        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head, *_elem = STRUCT_NULL; \
         while (_iter) { \
             _elem = (struct NAME##_elem*) STRUCT_CALLOC(1, struct NAME); \
@@ -959,13 +990,15 @@
 
     // cast: list_push
     #define DEFINE_STRUCT_LIST_PUSH_CAST(NAME, SUFFIX, TS, TD) \
-        STRUCT_ATTRIB void NAME##_push##SUFFIX(struct NAME *_list, TD _data) { \
+        STRUCT_ATTRIB void NAME##_push##SUFFIX(struct NAME *_list, TD _data)\
+        { \
             NAME##_push(_list, STRUCT_CAST(TS, _data)); \
         }
 
     // cast: list_pop
     #define DEFINE_STRUCT_LIST_POP_BACKCAST(NAME, SUFFIX, TS, TD) \
-        STRUCT_ATTRIB int NAME##_pop##SUFFIX(struct NAME *_list, TD *_return) { \
+        STRUCT_ATTRIB int NAME##_pop##SUFFIX(struct NAME *_list, TD *_return)\
+        { \
             TS _data; \
             if (NAME##_pop(_list, &_data)) { \
                 *_return = STRUCT_BACKCAST(TD, _data); \
@@ -1030,7 +1063,8 @@
 
 // define: slice
 #define DEFINE_STRUCT_LIST_SLICE(NAME, T) \
-    STRUCT_ATTRIB struct NAME *NAME##_slice(struct NAME *_list, int _from, int _to) { \
+    STRUCT_ATTRIB struct NAME *NAME##_slice(struct NAME *_list, int _from, int _to)\
+    { \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME *_slice = (struct NAME*) STRUCT_CALLOC(1, struct NAME); \
         _slice->l_head = STRUCT_NULL; \
@@ -1063,7 +1097,8 @@
 
 // define: concat
 #define DEFINE_STRUCT_LIST_CONCAT(NAME, T) \
-    STRUCT_ATTRIB void NAME##_concat(struct NAME *_list, struct NAME *_src) { \
+    STRUCT_ATTRIB void NAME##_concat(struct NAME *_list, struct NAME *_src)\
+    { \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head, *_elem = STRUCT_NULL; \
         while (_iter) { \
@@ -1086,7 +1121,8 @@
 
 // define: reverse
 #define DEFINE_STRUCT_LIST_REVERSE(NAME, T) \
-    STRUCT_ATTRIB void NAME##_reverse(struct NAME *_list) { \
+    STRUCT_ATTRIB void NAME##_reverse(struct NAME *_list)\
+    { \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head, *_next, *_tmp; \
         while (_iter) { \
@@ -1104,7 +1140,8 @@
 
 // define: trunacte
 #define DEFINE_STRUCT_LIST_TRUNCATE(NAME, T) \
-    STRUCT_ATTRIB void NAME##_truncate(struct NAME* _list, int _head, int _tail) { \
+    STRUCT_ATTRIB void NAME##_truncate(struct NAME* _list, int _head, int _tail)\
+    { \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter, *_next, *_prev; \
         for (_iter = _list->l_head; _head > 0 && _list->l_head; _head -= 1) { \
@@ -1136,7 +1173,8 @@
 
 // define: cut
 #define DEFINE_STRUCT_LIST_CUT(NAME, T) \
-    STRUCT_ATTRIB struct NAME* NAME##_cut(struct NAME* _list, int _from, int _to) { \
+    STRUCT_ATTRIB struct NAME* NAME##_cut(struct NAME* _list, int _from, int _to)\
+    { \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME *_cut = (struct NAME*) STRUCT_CALLOC(1, struct NAME); \
         _cut->l_head = STRUCT_NULL; \
@@ -1188,19 +1226,83 @@
 
 // define: for_each
 #define DEFINE_STRUCT_LIST_FOR_EACH(NAME, T)  \
-    STRUCT_ATTRIB void NAME##_for_each(struct NAME *_list, void (*_func)(T)) { \
+    STRUCT_ATTRIB void NAME##_for_each(struct NAME *_list, void (*_func)(T))\
+    { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
+        struct NAME##_elem *_iter = _list->l_head, *_next; \
+        while (_iter) { \
+            _next = _iter->le_next; \
+            _func(_iter->le_data); \
+            _iter = _next; \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
+    }
+
+// define: for_each_data
+#define DEFINE_STRUCT_LIST_FOR_EACH_DATA(NAME, T, TD)  \
+    STRUCT_ATTRIB void NAME##_for_each_data(struct NAME *_list, void (*_func)(T, TD), TD _data)\
+    { \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head; \
         while (_iter) { \
-            _func(_iter->le_data); \
+            _func(_iter->le_data, _data); \
             _iter = _iter->le_next; \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
+    }
+
+// define: for_each_index
+#define DEFINE_STRUCT_LIST_FOR_EACH_INDEX(NAME, T)  \
+    STRUCT_ATTRIB void NAME##_for_each_INDEX(struct NAME *_list, void (*_func)(T, int))\
+    { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
+        struct NAME##_elem *_iter = _list->l_head, *_next; \
+        int _count = 0; \
+        while (_iter) { \
+            _next = _iter->le_next; \
+            _func(_iter->le_data, _count); \
+            _iter = _next; \
+            _count += 1; \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
+    }
+
+// define: for_each_data_index
+#define DEFINE_STRUCT_LIST_FOR_EACH_DATA_INDEX(NAME, T, TD)  \
+    STRUCT_ATTRIB void NAME##_for_each_data_index(struct NAME *_list, void (*_func)(T, TD, int), TD _data)\
+    { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
+        struct NAME##_elem *_iter = _list->l_head, *_next; \
+        int _count = 0; \
+        while (_iter) { \
+            _next = _iter->le_next; \
+            _func(_iter->le_data, _data, _count); \
+            _iter = _next; \
+            _count += 1; \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
+    }
+
+// define: for_each_index
+#define DEFINE_STRUCT_LIST_FOR_EACH_INDEX(NAME, T)  \
+    STRUCT_ATTRIB void NAME##_for_each_INDEX(struct NAME *_list, void (*_func)(T, int))\
+    { \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
+        struct NAME##_elem *_iter = _list->l_head, *_next; \
+        int _count = 0; \
+        while (_iter) { \
+            _next = _iter->le_next; \
+            _func(_iter->le_data, _count); \
+            _iter = _next; \
+            _count += 1; \
         } \
         STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
 // define: for_each_elem
 #define DEFINE_STRUCT_LIST_FOR_EACH_ELEM(NAME, T)  \
-    STRUCT_ATTRIB void NAME##_for_each_elem(struct NAME *_list, void (*_func)(struct NAME##_elem*)) { \
+    STRUCT_ATTRIB void NAME##_for_each_elem(struct NAME *_list, void (*_func)(struct NAME##_elem*))\
+    { \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head, *_next; \
         while (_iter) { \
@@ -1211,21 +1313,10 @@
         STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
     }
 
-// define: for_each_data
-#define DEFINE_STRUCT_LIST_FOR_EACH_DATA(NAME, T, TD)  \
-    STRUCT_ATTRIB void NAME##_for_each_data(struct NAME *_list, void (*_func)(T, TD), TD _data) { \
-        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
-        struct NAME##_elem *_iter = _list->l_head; \
-        while (_iter) { \
-            _func(_iter->le_data, _data); \
-            _iter = _iter->le_next; \
-        } \
-        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
-    }
-
 // define: for_each_elem_data
 #define DEFINE_STRUCT_LIST_FOR_EACH_ELEM_DATA(NAME, T, TD)  \
-    STRUCT_ATTRIB void NAME##_for_each_elem_data(struct NAME *_list, void (*_func)(struct NAME##_elem*, TD), TD _data) { \
+    STRUCT_ATTRIB void NAME##_for_each_elem_data(struct NAME *_list, void (*_func)(struct NAME##_elem*, TD), TD _data)\
+    { \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head, *_next; \
         while (_iter) { \
@@ -1238,7 +1329,8 @@
 
 // define: remove_elem
 #define DEFINE_STRUCT_LIST_REMOVE_ELEM(NAME, T) \
-    STRUCT_ATTRIB struct NAME##_elem *NAME##_remove_elem(struct NAME *_list, struct NAME##_elem *_elem) { \
+    STRUCT_ATTRIB struct NAME##_elem *NAME##_remove_elem(struct NAME *_list, struct NAME##_elem *_elem)\
+    { \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         if (_elem == _list->l_head && _list->l_head == _list->l_tail) { \
             _list->l_head = STRUCT_NULL; \
@@ -1263,7 +1355,8 @@
 
 // define: remove_at
 #define DEFINE_STRUCT_LIST_REMOVE_AT(NAME, T) \
-    STRUCT_ATTRIB int NAME##_remove_at(struct NAME *_list, T *_data, int _at) { \
+    STRUCT_ATTRIB int NAME##_remove_at(struct NAME *_list, T *_data, int _at)\
+    { \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         int _count = 0; \
         struct NAME##_elem *_iter = _list->l_head, *_next; \
@@ -1303,7 +1396,8 @@
 
 // define: remove_elem_at
 #define DEFINE_STRUCT_LIST_REMOVE_ELEM_AT(NAME, T) \
-    STRUCT_ATTRIB struct NAME##_elem *NAME##_remove_elem_at(struct NAME *_list, int _at) { \
+    STRUCT_ATTRIB struct NAME##_elem *NAME##_remove_elem_at(struct NAME *_list, int _at)\
+    { \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head, *_next; \
         while (_iter && _at >= 0) { \
@@ -1339,7 +1433,8 @@
 
 // define: at
 #define DEFINE_STRUCT_LIST_AT(NAME, T) \
-    STRUCT_ATTRIB int NAME##_at(struct NAME *_list, T *_data, int _at) { \
+    STRUCT_ATTRIB int NAME##_at(struct NAME *_list, T *_data, int _at)\
+    { \
         int _count = 0; \
         if (! _data) \
             return _count; \
@@ -1360,7 +1455,8 @@
 
 // define: elem_at
 #define DEFINE_STRUCT_LIST_ELEM_AT(NAME, T) \
-    STRUCT_ATTRIB struct NAME##_elem *NAME##_elem_at(struct NAME *_list, int _at) { \
+    STRUCT_ATTRIB struct NAME##_elem *NAME##_elem_at(struct NAME *_list, int _at)\
+    { \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head; \
         while (_iter && _at >= 0) { \
@@ -1376,7 +1472,8 @@
 
 // define: insert_at
 #define DEFINE_STRUCT_LIST_INSERT_AT(NAME, T) \
-    STRUCT_ATTRIB void NAME##_insert_at(struct NAME *_list, T _data, int _at) { \
+    STRUCT_ATTRIB void NAME##_insert_at(struct NAME *_list, T _data, int _at)\
+    { \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter, *_elem; \
         _elem = (struct NAME##_elem*) STRUCT_CALLOC(1, struct NAME##_elem); \
@@ -1410,7 +1507,8 @@
 
 // define: insert_elem_at
 #define DEFINE_STRUCT_LIST_INSERT_ELEM_AT(NAME, T) \
-    STRUCT_ATTRIB void NAME##_insert_elem_at(struct NAME *_list, struct NAME##_elem *_elem, int _at) { \
+    STRUCT_ATTRIB void NAME##_insert_elem_at(struct NAME *_list, struct NAME##_elem *_elem, int _at)\
+    { \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter; \
         _elem->le_next = STRUCT_NULL; \
@@ -1442,7 +1540,8 @@
 
 // define: insert_sorted_by
 #define DEFINE_STRUCT_LIST_INSERT_SORTED_BY(NAME, T) \
-    STRUCT_ATTRIB void NAME##_insert_sorted_by(struct NAME *_list, T _data, int (*_less)(T, T)) { \
+    STRUCT_ATTRIB void NAME##_insert_sorted_by(struct NAME *_list, T _data, int (*_less)(T, T))\
+    { \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter, *_elem; \
         _elem = (struct NAME##_elem*) STRUCT_CALLOC(1, struct NAME##_elem); \
@@ -1475,7 +1574,8 @@
 
 // define: insert_sorted_elem_by
 #define DEFINE_STRUCT_LIST_INSERT_SORTED_ELEM_BY(NAME, T) \
-    STRUCT_ATTRIB void NAME##_insert_sorted_elem_by(struct NAME *_list, struct NAME##_elem *_elem, int (*_less)(T, T)) { \
+    STRUCT_ATTRIB void NAME##_insert_sorted_elem_by(struct NAME *_list, struct NAME##_elem *_elem, int (*_less)(T, T))\
+    { \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter; \
         _elem->le_next = STRUCT_NULL; \
@@ -1506,7 +1606,8 @@
 
 // define: insert_elem_after_elem
 #define DEFINE_STRUCT_LIST_INSERT_ELEM_AFTER_ELEM(NAME, T) \
-    STRUCT_ATTRIB void NAME##_insert_elem_after_elem(struct NAME *_list, struct NAME##_elem *_after, struct NAME##_elem *_elem) { \
+    STRUCT_ATTRIB void NAME##_insert_elem_after_elem(struct NAME *_list, struct NAME##_elem *_after, struct NAME##_elem *_elem)\
+    { \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         _elem->le_prev = _after; \
         _elem->le_next = _after->le_next; \
@@ -1520,7 +1621,8 @@
 
 // define: insert_elem_before_elem
 #define DEFINE_STRUCT_LIST_INSERT_ELEM_BEFORE_ELEM(NAME, T) \
-    STRUCT_ATTRIB void NAME##_insert_elem_before_elem(struct NAME *_list, struct NAME##_elem *_before, struct NAME##_elem *_elem) { \
+    STRUCT_ATTRIB void NAME##_insert_elem_before_elem(struct NAME *_list, struct NAME##_elem *_before, struct NAME##_elem *_elem)\
+    { \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         _elem->le_next = _before; \
         _elem->le_prev = _before->le_prev; \
@@ -1533,7 +1635,8 @@
 
 // define: sort_by
 #define DEFINE_STRUCT_LIST_SORT_BY(NAME, T) \
-    STRUCT_ATTRIB void NAME##_sort_by(struct NAME *_list, int (*_less)(T, T)) { \
+    STRUCT_ATTRIB void NAME##_sort_by(struct NAME *_list, int (*_less)(T, T))\
+    { \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_head = STRUCT_NULL, *_tail = STRUCT_NULL, *_iter = _list->l_head, *_next, *_elem; \
         while (_iter){ \
@@ -1571,7 +1674,8 @@
 
 // define: sort_by_data
 #define DEFINE_STRUCT_LIST_SORT_BY_DATA(NAME, T, TD) \
-    STRUCT_ATTRIB void NAME##_sort_by_data(struct NAME *_list, int (*_less)(T, T, TD), TD _data) { \
+    STRUCT_ATTRIB void NAME##_sort_by_data(struct NAME *_list, int (*_less)(T, T, TD), TD _data)\
+    { \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_head = STRUCT_NULL, *_tail = STRUCT_NULL, *_iter = _list->l_head, *_next, *_elem; \
         while (_iter){ \
@@ -1609,7 +1713,8 @@
 
 // define: map
 #define DEFINE_STRUCT_LIST_MAP(NAME, T) \
-    STRUCT_ATTRIB void NAME##_map(struct NAME *_list, T (*_map)(T)) { \
+    STRUCT_ATTRIB void NAME##_map(struct NAME *_list, T (*_map)(T))\
+    { \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head; \
         while (_iter) { \
@@ -1621,7 +1726,8 @@
 
 // define: map_data
 #define DEFINE_STRUCT_LIST_MAP_DATA(NAME, T, TD) \
-    STRUCT_ATTRIB void NAME##_map_data(struct NAME *_list, T (*_map)(T, TD), TD _data) { \
+    STRUCT_ATTRIB void NAME##_map_data(struct NAME *_list, T (*_map)(T, TD), TD _data)\
+    { \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head; \
         while (_iter) { \
@@ -1633,7 +1739,8 @@
 
 // define: map_elem
 #define DEFINE_STRUCT_LIST_MAP_ELEM(NAME, T) \
-    STRUCT_ATTRIB void NAME##_map_elem(struct NAME *_list, void (*_map)(struct NAME##_elem*)) { \
+    STRUCT_ATTRIB void NAME##_map_elem(struct NAME *_list, void (*_map)(struct NAME##_elem*))\
+    { \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head, *_next; \
         while (_iter) { \
@@ -1646,7 +1753,8 @@
 
 // define: map_elem_data
 #define DEFINE_STRUCT_LIST_MAP_ELEM_DATA(NAME, T, TD) \
-    STRUCT_ATTRIB void NAME##_map_elem_data(struct NAME *_list, void (*_map)(struct NAME##_elem*, TD), TD _data) { \
+    STRUCT_ATTRIB void NAME##_map_elem_data(struct NAME *_list, void (*_map)(struct NAME##_elem*, TD), TD _data)\
+    { \
         STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
         struct NAME##_elem *_iter = _list->l_head, *_next; \
         while (_iter) { \
@@ -1725,7 +1833,65 @@
 #define DEFINE_STRUCT_LIST_STACK_BACKCAST(NAME, SUFFIX, TS, TD) \
     DEFINE_STRUCT_LIST_POP_BACKCAST(NAME, SUFFIX, TS, TD)
 
-#define DEFINE_STRUCT_LIST_BULK_FOR_EACH(NAME, T) \
+// define custom: for_each
+#define DEFINE_STRUCT_LIST_CUSTOM_FOR_EACH(NAME, T, FNAME, FUNC) \
+    STRUCT_ATTRIB void NAME##FNAME(struct NAME *_list)\
+    {  \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
+        struct NAME##_elem *_iter = _list->l_head, *_next; \
+        while (_iter)  { \
+            _next = _iter->le_next; \
+            FUNC((_iter->le_data)); \
+            _iter = _next; \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
+    }
+
+// define custom: for_each_data
+#define DEFINE_STRUCT_LIST_CUSTOM_FOR_EACH_DATA(NAME, T, FNAME, FUNC, TD) \
+    STRUCT_ATTRIB void NAME##FNAME(struct NAME *_list, TD _data)\
+    {  \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
+        struct NAME##_elem *_iter = _list->l_head, *_next; \
+        while (_iter)  { \
+            _next = _iter->le_next; \
+            FUNC((_iter->le_data), (_data)); \
+            _iter = _next; \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
+    }
+
+// define custom: for_each_index
+#define DEFINE_STRUCT_LIST_CUSTOM_FOR_EACH_INDEX(NAME, T, FNAME, FUNC) \
+    STRUCT_ATTRIB void NAME##FNAME(struct NAME *_list)\
+    {  \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
+        struct NAME##_elem *_iter = _list->l_head, *_next; \
+        int _count = 0; \
+        while (_iter)  { \
+            _next = _iter->le_next; \
+            FUNC((_iter->le_data), (_count)); \
+            _iter = _next; \
+            _count += 1; \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
+    }
+
+// define custom: for_each_data_index
+#define DEFINE_STRUCT_LIST_CUSTOM_FOR_EACH_DATA_INDEX(NAME, T, FNAME, FUNC, TD) \
+    STRUCT_ATTRIB void NAME##FNAME(struct NAME *_list, TD _data)\
+    {  \
+        STRUCT_MT_SAFE_LOCK(_list->l_mt_safe); \
+        struct NAME##_elem *_iter = _list->l_head, *_next; \
+        int _count = 0; \
+        while (_iter)  { \
+            _next = _iter->le_next; \
+            FUNC((_iter->le_data), (_data), (_count)); \
+            _iter = _next; \
+            _count += 1; \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_list->l_mt_safe); \
+    }
 
 // define: list
 #define DEFINE_STRUCT_LIST(NAME, T) \
@@ -1737,8 +1903,11 @@
     DEFINE_STRUCT_LIST_FREE(NAME, T) \
     DEFINE_STRUCT_LIST_HEAD(NAME, T) \
     DEFINE_STRUCT_LIST_TAIL(NAME, T) \
+    \
     DEFINE_STRUCT_LIST_LOCK(NAME, T) \
     DEFINE_STRUCT_LIST_UNLOCK(NAME, T) \
+    DEFINE_STRUCT_LIST_MT_SAFE_LOCK(NAME, T) \
+    DEFINE_STRUCT_LIST_MT_SAFE_UNLOCK(NAME, T) \
     \
     DEFINE_STRUCT_LIST_ELEM_NEW(NAME, T) \
     DEFINE_STRUCT_LIST_ELEM_INIT(NAME, T) \
@@ -1767,6 +1936,9 @@
     \
     DEFINE_STRUCT_LIST_FOR_EACH(NAME, T) \
     DEFINE_STRUCT_LIST_FOR_EACH_DATA(NAME, T, void*) \
+    DEFINE_STRUCT_LIST_FOR_EACH_INDEX(NAME, T) \
+    DEFINE_STRUCT_LIST_FOR_EACH_DATA_INDEX(NAME, T, void*) \
+    \
     DEFINE_STRUCT_LIST_FOR_EACH_ELEM(NAME, T) \
     DEFINE_STRUCT_LIST_FOR_EACH_ELEM_DATA(NAME, T, void*) \
     \
@@ -1794,6 +1966,7 @@
 
 
 /*
+TODO:
     DEFINE_STRUCT_LIST_FILTER_BY(NAME, T) \
     DEFINE_STRUCT_LIST_FILTER_BY_DATA(NAME, T) \
     DEFINE_STRUCT_LIST_FIND(NAME, T) \

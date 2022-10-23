@@ -1,0 +1,37 @@
+TODO
+
+  * - Working on
+  x - Complete
+  / - Won't implement
+
+  Linear data structures
+    [*] list.h
+    [*] buffer.h
+    [*] array.h
+  Graphs
+    [ ] graph.h
+  Trees
+    [ ] binary-tree.h
+    [ ] bst-tree.h
+    [ ] avl-tree.h
+    [ ] b-tree.h
+    [ ] rb-tree.h
+    [ ] quad-tree.h
+  Mathematics
+    [ ] monoid.h
+    [ ] group.h
+    [ ] vector.h
+    [*] matrix.h
+
+Linear data structures:
+    Lis Arr Buf
+    [x] [ ] [ ] Stack:           push         pop
+    [x] [ ] [ ] Queue:           enqueue      dequeue
+    [x] [ ] [ ] Double stack:    push_head    push_tail    pop_head     pop_tail
+    [x] [ ] [ ] Double queue:    enqueue_head enqueue_tail dequeue_head dequeue_tail
+
+    [ ] [ ] [ ] Random access:   get / set
+    [ ] [ ] [ ] MT-Safe support: yes / no
+    [x] [x] [ ] Multi-threading: lock rdlock wrlock unlock rdunlock wrunlock
+    [ ] [ ] [ ] Surgery:         slice cut 
+
