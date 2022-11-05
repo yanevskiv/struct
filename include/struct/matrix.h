@@ -6,6 +6,9 @@
 
 #include "common.h"
 
+#define STRUCT_MATRIX_AT(row, col, height, width) \
+    ((row) * (width) + (col))
+
 // define: typedef
 #define DEFINE_STRUCT_MATRIX_TYPEDEF(NAME, T) \
     typedef struct NAME NAME##_t;
@@ -16,9 +19,133 @@
         T* m_data; \
         int m_width; \
         int m_height; \
-        STRUCT_MUTEX_DECLARE(b_mutex) \
-        STRUCT_MT_SAFE_DECLARE(b_mutex) \
+        STRUCT_MUTEX_DECLARE(m_mutex) \
+        STRUCT_MT_SAFE_DECLARE(m_mt_safe) \
     };
+
+// define: new
+#define DEFINE_STRUCT_MATRIX_NEW(NAME, T) \
+    STRUCT_ATTRIB struct NAME *NAME##_new(int _height, int _width) \
+    { \
+        struct NAME *_matrix = (struct NAME*) STRUCT_CALLOC(1, struct NAME); \
+        int _i, _size = _width * _height; \
+        _matrix->m_data = (T*) STRUCT_CALLOC(_size, T); \
+        _matrix->m_width = _width; \
+        _matrix->m_height = _height; \
+        for (_i = 0; _i < _size; _i++) { \
+            STRUCT_ASSIGN(_matrix->m_data[_i], STRUCT_ZERO); \
+        } \
+        STRUCT_MUTEX_INIT(_matrix->m_mutex) \
+        STRUCT_MT_SAFE_INIT(_matrix->m_mt_safe) \
+        return _matrix; \
+    }
+
+// define: init
+#define DEFINE_STRUCT_MATRIX_INIT(NAME, T) \
+    STRUCT_ATTRIB void NAME##_init(struct NAME *_matrix, int _height, int _width) \
+    { \
+        int _i, _size = _width * _height; \
+        _matrix->m_data = (T*) STRUCT_CALLOC(_size, T); \
+        _matrix->m_width = _width; \
+        _matrix->m_height = _height; \
+        for (_i = 0; _i < _size; _i++) { \
+            STRUCT_ASSIGN(_matrix->m_data[_i], STRUCT_ZERO); \
+        } \
+        STRUCT_MUTEX_INIT(_matrix->m_mutex) \
+        STRUCT_MT_SAFE_INIT(_matrix->m_mt_safe) \
+    }
+
+// define: destroy
+#define DEFINE_STRUCT_MATRIX_DESTROY(NAME, T) \
+    STRUCT_ATTRIB void NAME##_destroy(struct NAME *_matrix) \
+    { \
+        STRUCT_FREE(_matrix->m_data); \
+        _matrix->m_data = STRUCT_NULL; \
+        _matrix->m_width = 0; \
+        _matrix->m_height = 0; \
+        STRUCT_MUTEX_DESTROY(_matrix->m_mutex) \
+        STRUCT_MT_SAFE_DESTROY(_matrix->m_mt_safe) \
+    }
+
+// define: free
+#define DEFINE_STRUCT_MATRIX_FREE(NAME, T) \
+    STRUCT_ATTRIB void NAME##_free(struct NAME *_matrix) \
+    { \
+        STRUCT_FREE(_matrix->m_data); \
+        _matrix->m_data = STRUCT_NULL; \
+        _matrix->m_width = 0; \
+        _matrix->m_height = 0; \
+        STRUCT_MUTEX_DESTROY(_matrix->m_mutex) \
+        STRUCT_MT_SAFE_DESTROY(_matrix->m_mt_safe) \
+        STRUCT_FREE(_matrix); \
+    }
+
+// define: width
+#define DEFINE_STRUCT_MATRIX_WIDTH(NAME, T) \
+    STRUCT_ATTRIB int NAME##_width(struct NAME *_matrix) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
+        int _width = _matrix->m_width; \
+        STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
+        return _width; \
+    }
+
+// define: height 
+#define DEFINE_STRUCT_MATRIX_HEIGHT(NAME, T) \
+    STRUCT_ATTRIB int NAME##_height(struct NAME *_matrix) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
+        int _height  = _matrix->m_height; \
+        STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
+        return _height; \
+    }
+
+// define: clone
+#define DEFINE_STRUCT_MATRIX_CLONE(NAME, T) \
+    STRUCT_ATTRIB struct NAME *NAME##_clone(struct NAME *_matrix)\
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
+        struct NAME *_clone = (struct NAME*) STRUCT_CALLOC(1, struct NAME); \
+        int _i, _size = _matrix->m_width * _matrix->m_height; \
+        _clone->m_data = (T*) STRUCT_CALLOC(_size, T); \
+        _clone->m_width = _matrix->m_width; \
+        _clone->m_height = _matrix->m_height; \
+        for (_i = 0; _i < _size; _i++) { \
+            STRUCT_ASSIGN(_clone->m_data[_i], _matrix->m_data[_i]); \
+        } \
+        STRUCT_MUTEX_INIT(_clone->m_mutex) \
+        STRUCT_MT_SAFE_INIT(_clone->m_mt_safe) \
+        STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
+        return _clone; \
+    }
+
+// define: submatrix
+#define DEFINE_STRUCT_MATRIX_CLONE(NAME, T) \
+    STRUCT_ATTRIB struct NAME *NAME##_submatrix(struct NAME *_matrix, int _row, int _col, int _height, int _width)\
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
+        struct NAME *_clone = (struct NAME*) STRUCT_CALLOC(1, struct NAME); \
+        int _s_row, _s_col, _s_width = _width, _s_height = _height; \
+        if (_width < 0 || _col + _width > _matrix->m_width) \
+            _s_width = _matrix->m_width; \
+        if (_height < 0 || _row + _height > _matrix->m_height) \
+            _s_height = _matrix->m_height; \
+        _clone->m_data = (T*) STRUCT_CALLOC(_s_width * _s_height, T); \
+        _clone->m_width = _s_width; \
+        _clone->m_height = _s_height; \
+        for (_s_row = 0; _s_row < _s_height; _row++) { \
+            for (_s_col = 0; _s_col < _s_width; _s_col++) { \
+                STRUCT_ASSIGN( \
+                    _clone->m_data[STRUCT_MATRIX_AT(_s_row, _s_col, _s_height, _s_width)],  \
+                    _matrix->m_data[STRUCT_MATRIX_AT(_row +  _s_row, _col + _s_col, _matrix->m_height, _matrix->m_width)] \
+                ); \
+            } \
+        } \
+        STRUCT_MUTEX_INIT(_clone->m_mutex) \
+        STRUCT_MT_SAFE_INIT(_clone->m_mt_safe) \
+        STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
+        return _clone; \
+    }
 
 // TODO:
 // define: matrix
@@ -123,6 +250,4 @@
     DEFINE_STRUCT_MATRIX_SIN(NAME, T) \
     DEFINE_STRUCT_MATRIX_COS(NAME, T) \
     DEFINE_STRUCT_MATRIX_LOG(NAME, T) \
-
-
 
