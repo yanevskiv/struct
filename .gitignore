@@ -1,7 +1,8 @@
-a.out
-main.c
-examples/a.out
-examples/main.c
-examples/main
-sandbox/
-
+* 
+!main.c
+!README
+!TODO
+!examples
+!include
+!include/*
+!include/*/*
