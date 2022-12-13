@@ -6,8 +6,12 @@
 
 #include "common.h"
 
-#define STRUCT_MATRIX_AT(row, col, height, width) \
-    ((row) * (width) + (col))
+#define STRUCT_MATRIX_AT(matrix, row, col) \
+    ((row) * ((matrix)->m_width) + (col))
+
+#define STRUCT_MATRIX_GET(matrix, row, col) \
+    ((matrix)->m_data[STRUCT_MATRIX_AT((matrix), (row), (col))])
+    
 
 // define: typedef
 #define DEFINE_STRUCT_MATRIX_TYPEDEF(NAME, T) \
@@ -120,7 +124,7 @@
     }
 
 // define: submatrix
-#define DEFINE_STRUCT_MATRIX_CLONE(NAME, T) \
+#define DEFINE_STRUCT_MATRIX_SUBMATRIX(NAME, T) \
     STRUCT_ATTRIB struct NAME *NAME##_submatrix(struct NAME *_matrix, int _row, int _col, int _height, int _width)\
     { \
         STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
@@ -136,8 +140,8 @@
         for (_s_row = 0; _s_row < _s_height; _row++) { \
             for (_s_col = 0; _s_col < _s_width; _s_col++) { \
                 STRUCT_ASSIGN( \
-                    _clone->m_data[STRUCT_MATRIX_AT(_s_row, _s_col, _s_height, _s_width)],  \
-                    _matrix->m_data[STRUCT_MATRIX_AT(_row +  _s_row, _col + _s_col, _matrix->m_height, _matrix->m_width)] \
+                    _clone->m_data[STRUCT_MATRIX_AT(_clone, _s_row, _s_col)],  \
+                    _matrix->m_data[STRUCT_MATRIX_AT(_matrix, _row +  _s_row, _col + _s_col)] \
                 ); \
             } \
         } \
@@ -145,6 +149,70 @@
         STRUCT_MT_SAFE_INIT(_clone->m_mt_safe) \
         STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
         return _clone; \
+    }
+
+// define: lock
+#define DEFINE_STRUCT_MATRIX_LOCK(NAME, T) \
+    STRUCT_ATTRIB void NAME##_lock(struct NAME *_matrix) \
+    { \
+        STRUCT_MUTEX_LOCK(_matrix->m_mutex) \
+    }
+    
+// define: unlock
+#define DEFINE_STRUCT_MATRIX_UNLOCK(NAME, T) \
+    STRUCT_ATTRIB void NAME##_unlock(struct NAME *_matrix) \
+    { \
+        STRUCT_MUTEX_UNLOCK(_matrix->m_mutex) \
+    }
+
+// define: mt_safe_lock
+#define DEFINE_STRUCT_MATRIX_MT_SAFE_LOCK(NAME, T) \
+    STRUCT_ATTRIB void NAME##_mt_safe_lock(struct NAME *_matrix) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
+    }
+
+// define: mt_safe_unlock
+#define DEFINE_STRUCT_MATRIX_MT_SAFE_UNLOCK(NAME, T) \
+    STRUCT_ATTRIB void NAME##_mt_safe_unlock(struct NAME *_matrix) \
+    { \
+        STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
+    }
+
+// define: is_diagonal
+#define DEFINE_STRUCT_MATRIX_IS_DIAGONAL(NAME, T) \
+    STRUCT_ATTRIB int NAME##_is_diagonal(struct NAME *_matrix) \
+    { \
+        int _row, _col, _result = 1; \
+        for (_row = 0; _row < _matrix->m_height && _result == 1; _row++) { \
+            for (_col  = 0; _col < _matrix->m_width && _result == 1; _col++) { \
+                if (_row != _col && ! STRUCT_EQUALS(STRUCT_MATRIX_GET(_matrix, _row, _col), STRUCT_ZERO))  { \
+                    _result = 0; \
+                }  \
+            } \
+        } \
+        return _result; \
+    }
+
+// define: is_triangular
+#define DEFINE_STRUCT_MATRIX_IS_TRIANGULAR(NAME, T) \
+    STRUCT_ATTRIB int NAME##_is_triangular(struct NAME *_matrix) \
+    { \
+        int _row, _col, _unz = 0, _lnz = 0, _z; \
+        for (_row = 0; _row < _matrix->m_height && (_unz == 0 || _lnz == 0); _row++) { \
+            for (_col  = 0; _col < _matrix->m_width && (_unz == 0 || _lnz == 0) ; _col++) { \
+                if (_row == _col) { \
+                    continue; \
+                }  \
+                _z = STRUCT_EQUALS(STRUCT_MATRIX_GET(_matrix, _row, _col), STRUCT_ZERO); \
+                if (_row < _col && ! _z)  { \
+                    _lnz += 1; \
+                }  else { \
+                    _unz += 1; \
+                }\
+            } \
+        } \
+        return _unz == 0 || _lnz == 0; \
     }
 
 // TODO:

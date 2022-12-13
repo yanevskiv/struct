@@ -34,4 +34,4 @@ Linear data structures:
     [ ] [ ] [ ] MT-Safe support: yes / no
     [x] [x] [ ] Multi-threading: lock rdlock wrlock unlock rdunlock wrunlock
     [ ] [ ] [ ] Surgery:         slice cut 
-
+    [ ] [ ] [ ] Serialization:   serialize / unserialize
