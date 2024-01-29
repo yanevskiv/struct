@@ -3,6 +3,6 @@
 !README
 !TODO
 !examples
-!include
-!include/*
-!include/*/*
+!inc
+!inc/*
+!inc/*/*
