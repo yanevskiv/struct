@@ -6,15 +6,15 @@
 
 #include "common.h"
 
-// define: matrix at
+// util: matrix at
 #define STRUCT_MATRIX_AT(matrix, row, col) \
     ((row) * ((matrix)->m_width) + (col))
 
-// define: matrix get
+// util: matrix get
 #define STRUCT_MATRIX_GET(matrix, row, col) \
     ((matrix)->m_data[STRUCT_MATRIX_AT((matrix), (row), (col))])
     
-// define: matrix set
+// util: matrix set
 #define STRUCT_MATRIX_SET(matrix, row, col, val)\
     STRUCT_ASSIGN((matrix)->m_data[STRUCT_MATRIX_AT((matrix), (row), (col))], (val))
 
@@ -268,6 +268,36 @@
         return _result; \
     }
 
+// define: is_row_vector
+#define DEFINE_STRUCT_MATRIX_IS_ROW_VECTOR(NAME, T) \
+    STRUCT_ATTRIB int NAME##_is_row_vector(struct NAME *_matrix) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
+        int _result = (_matrix->m_height == 1); \
+        STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
+        return _result; \
+    }
+
+// define: is_col_vector
+#define DEFINE_STRUCT_MATRIX_IS_COL_VECTOR(NAME, T) \
+    STRUCT_ATTRIB int NAME##_is_col_vector(struct NAME *_matrix)  \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
+        int _result = (_matrix->m_width == 1); \
+        STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
+        return _result; \
+    }
+
+// define: is_vector
+#define DEFINE_STRUCT_MATRIX_IS_VECTOR(NAME, T) \
+    STRUCT_ATTRIB int NAME##_is_vector(struct NAME *_matrix)  \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
+        int _result = (_matrix->m_width == 1 || _matrix->m_height == 1); \
+        STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
+        return _result; \
+    }
+
 // define: is_square
 #define DEFINE_STRUCT_MATRIX_IS_SQUARE(NAME, T) \
     STRUCT_ATTRIB int NAME##_is_square(struct NAME *_matrix) \
@@ -297,6 +327,130 @@
         return _result; \
     }
 
+// define: set_identity
+#define DEFINE_STRUCT_MATRIX_SET_IDENTITY(NAME, T)\
+    STRUCT_ATTRIB void NAME##_set_identity(struct NAME *_matrix) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
+        int _row, _col; \
+        for (_row = 0; _row < _matrix->m_height; _row++) { \
+            for (_col = 0; _col < _matrix->m_width; _col++) { \
+                if (_row == _col) { \
+                    STRUCT_MATRIX_SET(_matrix, _row, _col, STRUCT_ONE); \
+                } else { \
+                    STRUCT_MATRIX_SET(_matrix, _row, _col, STRUCT_ZERO); \
+                } \
+            } \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
+    }
+
+// define: set_zero
+#define DEFINE_STRUCT_MATRIX_SET_ZERO(NAME, T) \
+    STRUCT_ATTRIB void NAME##_set_zero(struct NAME *_matrix) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
+        int _row, _col; \
+        for (_row = 0; _row < _matrix->m_height; _row++) { \
+            for (_col = 0; _col < _matrix->m_width; _col++) { \
+                STRUCT_MATRIX_SET(_matrix, _row, _col, STRUCT_ZERO); \
+            } \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
+    }
+
+// define: set_matrix
+#define DEFINE_STRUCT_MATRIX_SET_MATRIX(NAME, T) \
+    STRUCT_ATTRIB void NAME##_set_matrix(struct NAME *_matrix_dst, struct NAME *_matrix_src) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix_dst->m_mt_safe) \
+        if (_matrix_dst->m_width == _matrix_src->m_width && _matrix_dst->m_height == _matrix_src->m_height) { \
+            int _row, _col; \
+            for (_row = 0; _row < _matrix_dst->m_height; _row++) { \
+                for (_col = 0; _col < _matrix_dst->m_width; _col++) { \
+                    STRUCT_MATRIX_SET(_matrix_dst, _row, _col, STRUCT_MATRIX_GET(_matrix_src, _row, _col)); \
+                } \
+            } \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_matrix_dst->m_mt_safe) \
+    }
+
+// define: add_matrix
+#define DEFINE_STRUCT_MATRIX_ADD_MATRIX(NAME, T) \
+    STRUCT_ATTRIB int NAME##_add_matrix(struct NAME *_matrix_dst, struct NAME *_matrix1, struct NAME *_matrix2) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix_dst->m_mt_safe) \
+        int _row, _col, _ok = STRUCT_TRUE; \
+        _ok = _ok && (_matrix_dst->m_width == _matrix1->m_width) && (_matrix1->m_width == _matrix2->m_width); \
+        _ok = _ok && (_matrix_dst->m_height == _matrix1->m_height) && (_matrix1->m_height== _matrix2->m_height); \
+        if (_ok) { \
+            for (_row = 0; _row < _matrix_dst->m_height; _row++) { \
+                for (_col = 0; _col < _matrix_dst->m_width; _col++) { \
+                    STRUCT_MATRIX_SET(_matrix_dst, _row, _col, \
+                        STRUCT_ADD( \
+                            STRUCT_MATRIX_GET(_matrix1, _row, _col), \
+                            STRUCT_MATRIX_GET(_matrix2, _row, _col) \
+                        ) \
+                    ); \
+                } \
+            } \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_matrix_dst->m_mt_safe) \
+        return _ok; \
+    }
+
+// define: mul_matrix
+#define DEFINE_STRUCT_MATRIX_MUL_MATRIX(NAME, T) \
+    STRUCT_ATTRIB int NAME##_mul_matrix(struct NAME *_matrix_dst, struct NAME *_matrix1, struct NAME *_matrix2) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix_dst->m_mt_safe) \
+        int _row, _col, _i, _ok  = STRUCT_TRUE; \
+        _ok = _ok && (_matrix1->m_width == _matrix2->m_height); \
+        _ok = _ok && (_matrix_dst->m_width == _matrix1->m_width); \
+        _ok = _ok && (_matrix_dst->m_height == _matrix2->m_height); \
+        if (_ok) { \
+            for (_row = 0; _row < _matrix_dst->m_height; _row++) { \
+                for (_col = 0; _col < _matrix_dst->m_width; _col++) { \
+                    T _sum = STRUCT_ZERO;  \
+                    for (_i = 0; _i < _matrix1->m_height; _i++) { \
+                        STRUCT_ASSIGN(_sum, \
+                            STRUCT_ADD(_sum, \
+                                STRUCT_MUL( \
+                                    STRUCT_MATRIX_GET(_matrix1, _row, _i), \
+                                    STRUCT_MATRIX_GET(_matrix2, _i, _col) \
+                                ) \
+                            ) \
+                        ); \
+                    } \
+                    STRUCT_MATRIX_SET(_matrix_dst, _row, _col, _sum);\
+                } \
+            } \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_matrix_dst->m_mt_safe) \
+        return _ok; \
+    }
+
+// define: transpose
+#define DEFINE_STRUCT_MATRIX_TRANSPOSE(NAME, T) \
+    STRUCT_ATTRIB int NAME##_transpose(struct NAME *_matrix_dst, struct NAME *_matrix_src) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix_dst->m_mt_safe) \
+        int _row, _col, _ok = STRUCT_TRUE; \
+        _ok = _ok && (_matrix_dst->m_width == _matrix_src->m_height); \
+        _ok = _ok && (_matrix_dst->m_height == _matrix_src->m_width); \
+        if (_ok) { \
+            for (_row = 0; _row < _matrix_src->m_height; _row++) { \
+                for (_col = 0; _col < _matrix_src->m_width; _col++) { \
+                    STRUCT_MATRIX_SET(_matrix_dst, _col, _row, \
+                        STRUCT_MATRIX_GET(_matrix_src, _row, _col) \
+                    ); \
+                } \
+            } \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_matrix_dst->m_mt_safe) \
+        return _ok; \
+    }
+
 // define: matrix
 #define DEFINE_STRUCT_MATRIX(NAME, T) \
     DEFINE_STRUCT_MATRIX_TYPEDEF(NAME, T) \
@@ -322,8 +476,17 @@
     DEFINE_STRUCT_MATRIX_IS_TRIANGULAR(NAME, T) \
     DEFINE_STRUCT_MATRIX_IS_LOWER_TRIANGULAR(NAME, T) \
     DEFINE_STRUCT_MATRIX_IS_UPPER_TRIANGULAR(NAME, T) \
-    DEFINE_STRUCT_MATRIX_EQUALS(NAME, T) 
-
+    DEFINE_STRUCT_MATRIX_IS_COL_VECTOR(NAME, T) \
+    DEFINE_STRUCT_MATRIX_IS_ROW_VECTOR(NAME, T) \
+    DEFINE_STRUCT_MATRIX_IS_VECTOR(NAME, T) \
+    DEFINE_STRUCT_MATRIX_EQUALS(NAME, T) \
+    \
+    DEFINE_STRUCT_MATRIX_SET_IDENTITY(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SET_ZERO(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SET_MATRIX(NAME, T) \
+    DEFINE_STRUCT_MATRIX_ADD_MATRIX(NAME, T) \
+    DEFINE_STRUCT_MATRIX_MUL_MATRIX(NAME, T) \
+    DEFINE_STRUCT_MATRIX_TRANSPOSE(NAME, T)
 
 /*
 TODO
@@ -357,7 +520,7 @@ TODO
     \
     DEFINE_STRUCT_MATRIX_FILL(NAME, T) \
     DEFINE_STRUCT_MATRIX_SET_IDENTITY(NAME, T) \
-    DEFINE_STRUCT_MATRIX_SET_ZERO_MATRIX(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SET_ZERO(NAME, T) \
     DEFINE_STRUCT_MATRIX_SET_SCALING(NAME, T) \
     DEFINE_STRUCT_MATRIX_SET_TRANSLATION(NAME, T) \
     DEFINE_STRUCT_MATRIX_SET_ROTATION(NAME, T) \
@@ -366,10 +529,10 @@ TODO
     DEFINE_STRUCT_MATRIX_ADD_MATRIX(NAME, T) \
     DEFINE_STRUCT_MATRIX_MUL_MATRIX(NAME, T) \
     DEFINE_STRUCT_MATRIX_TRANSPOSE(NAME, T) \
-    DEFINE_STRUCT_MATRIX_ADJUGATE(NAME, T) \
-    DEFINE_STRUCT_MATRIX_INVERSE(NAME, T) \
-    DEFINE_STRUCT_MATRIX_CONJUGATE(NAME, T) \
-    DEFINE_STRUCT_MATRIX_TRACE(NAME, T) \
+    DEFINE_STRUCT_MATRIX_ADJUGATE(NAME, T) \  TODO
+    DEFINE_STRUCT_MATRIX_INVERSE(NAME, T) \   TODO
+    DEFINE_STRUCT_MATRIX_CONJUGATE(NAME, T) \ TODO
+    DEFINE_STRUCT_MATRIX_TRACE(NAME, T) \     TODO
     \
     DEFINE_STRUCT_MATRIX_PREPEND_ROW(NAME, T) \
     DEFINE_STRUCT_MATRIX_PREPEND_COL(NAME, T) \
@@ -424,6 +587,7 @@ TODO
     DEFINE_STRUCT_MATRIX_COFACTOR(NAME, T) \
     DEFINE_STRUCT_MATRIX_GAUSS(NAME, T) \
     DEFINE_STRUCT_MATRIX_LU(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SVD(NAME, T) \
     \
     DEFINE_STRUCT_MATRIX_EXP(NAME, T) \
     DEFINE_STRUCT_MATRIX_SIN(NAME, T) \
