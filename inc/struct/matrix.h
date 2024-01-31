@@ -4,6 +4,117 @@
  * Matrix
  */
 
+
+/*
+TODO
+#define DEFINE_STRUCT_MATRIX(NAME, T) \
+    DEFINE_STRUCT_MATRIX_TYPEDEF(NAME, T) \
+    DEFINE_STRUCT_MATRIX_STRUCT(NAME, T) \
+    DEFINE_STRUCT_MATRIX_NEW(NAME, T) \
+    DEFINE_STRUCT_MATRIX_INIT(NAME, T) \
+    DEFINE_STRUCT_MATRIX_DESTROY(NAME, T) \
+    DEFINE_STRUCT_MATRIX_FREE(NAME, T) \
+    DEFINE_STRUCT_MATRIX_WIDTH(NAME, T) \
+    DEFINE_STRUCT_MATRIX_HEIGHT(NAME, T) \
+    DEFINE_STRUCT_MATRIX_CLONE(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SUBMATRIX(NAME, T) \
+    DEFINE_STRUCT_MATRIX_GET(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SET(NAME, T) \
+    \
+    DEFINE_STRUCT_MATRIX_LOCK(NAME, T) \
+    DEFINE_STRUCT_MATRIX_UNLOCK(NAME, T) \
+    DEFINE_STRUCT_MATRIX_MT_SAFE_LOCK(NAME, T) \
+    DEFINE_STRUCT_MATRIX_MT_SAFE_UNLOCK(NAME, T) \
+    \
+    DEFINE_STRUCT_MATRIX_IS_SQUARE(NAME, T) \
+    DEFINE_STRUCT_MATRIX_IS_DIAGONAL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_IS_TRIANGULAR(NAME, T) \
+    DEFINE_STRUCT_MATRIX_IS_UPPER_TRIANGULAR(NAME, T) \
+    DEFINE_STRUCT_MATRIX_IS_LOWER_TRIANGULAR(NAME, T) \
+    DEFINE_STRUCT_MATRIX_IS_VECTOR(NAME, T) \
+    DEFINE_STRUCT_MATRIX_IS_ROW_VECTOR(NAME, T) \
+    DEFINE_STRUCT_MATRIX_IS_COL_VECTOR(NAME, T) \
+    \
+    DEFINE_STRUCT_MATRIX_FILL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SET_IDENTITY(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SET_ZERO(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SET_SCALING(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SET_TRANSLATION(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SET_ROTATION(NAME, T) \
+    \
+    DEFINE_STRUCT_MATRIX_SET_MATRIX(NAME, T) \
+    DEFINE_STRUCT_MATRIX_ADD_MATRIX(NAME, T) \
+    DEFINE_STRUCT_MATRIX_MUL_MATRIX(NAME, T) \
+    DEFINE_STRUCT_MATRIX_TRANSPOSE(NAME, T) \
+    DEFINE_STRUCT_MATRIX_ADJUGATE(NAME, T) \  TODO
+    DEFINE_STRUCT_MATRIX_INVERSE(NAME, T) \   TODO
+    DEFINE_STRUCT_MATRIX_CONJUGATE(NAME, T) \ TODO
+    DEFINE_STRUCT_MATRIX_TRACE(NAME, T) \     TODO
+    \
+    DEFINE_STRUCT_MATRIX_PREPEND_ROW(NAME, T) \
+    DEFINE_STRUCT_MATRIX_PREPEND_COL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_APPEND_ROW(NAME, T) \
+    DEFINE_STRUCT_MATRIX_APPEND_COL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_INSERT_ROW(NAME, T) \
+    DEFINE_STRUCT_MATRIX_INSERT_COL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_DELETE_ROW(NAME, T) \
+    DEFINE_STRUCT_MATRIX_DELETE_COL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SWAP_ROW(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SWAP_COL(NAME, T) \
+    \
+    DEFINE_STRUCT_MATRIX_SET_ROW(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SET_COL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SET_DIAGONAL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SET_MAIN_DIAGONAL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SET_ANTI_DIAGONAL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SET_TRIANGLE(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SET_UPPER_TRIANGLE(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SET_LOWER_TRIANGLE(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SET_BLOCK(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SET_ALL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_ROW_SET_ROW(NAME, T)\
+    DEFINE_STRUCT_MATRIX_COL_SET_COL(NAME, T)\
+    \
+    DEFINE_STRUCT_MATRIX_ADD(NAME, T) \
+    DEFINE_STRUCT_MATRIX_ADD_ROW(NAME, T) \
+    DEFINE_STRUCT_MATRIX_ADD_COL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_ADD_DIAGONAL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_ADD_MAIN_DIAGONAL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_ADD_ANTI_DIAGONAL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_ADD_TRIANGLE(NAME, T) \
+    DEFINE_STRUCT_MATRIX_ADD_UPPER_TRIANGLE(NAME, T) \
+    DEFINE_STRUCT_MATRIX_ADD_LOWER_TRIANGLE(NAME, T) \
+    DEFINE_STRUCT_MATRIX_ADD_BLOCK(NAME, T) \
+    DEFINE_STRUCT_MATRIX_ADD_ALL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_ROW_ADD_ROW(NAME, T)\
+    DEFINE_STRUCT_MATRIX_COL_ADD_COL(NAME, T)\
+    \
+    DEFINE_STRUCT_MATRIX_MUL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_MUL_ROW(NAME, T) \
+    DEFINE_STRUCT_MATRIX_MUL_COL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_MUL_DIAGONAL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_MUL_MAIN_DIAGONAL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_MUL_ANTI_DIAGONAL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_MUL_TRIANGLE(NAME, T) \
+    DEFINE_STRUCT_MATRIX_MUL_UPPER_TRIANGLE(NAME, T) \
+    DEFINE_STRUCT_MATRIX_MUL_LOWER_TRIANGLE(NAME, T) \
+    DEFINE_STRUCT_MATRIX_MUL_BLOCK(NAME, T) \
+    DEFINE_STRUCT_MATRIX_MUL_ALL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_ROW_MUL_ROW(NAME, T)\
+    DEFINE_STRUCT_MATRIX_COL_MUL_COL(NAME, T)\
+    \
+    DEFINE_STRUCT_MATRIX_DETERMINANT(NAME, T) \
+    DEFINE_STRUCT_MATRIX_COFACTOR(NAME, T) \
+    DEFINE_STRUCT_MATRIX_GAUSS(NAME, T) \
+    DEFINE_STRUCT_MATRIX_LU(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SVD(NAME, T) \
+    \
+    DEFINE_STRUCT_MATRIX_EXP(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SIN(NAME, T) \
+    DEFINE_STRUCT_MATRIX_COS(NAME, T) \
+    DEFINE_STRUCT_MATRIX_LOG(NAME, T) \
+
+*/
 #include "common.h"
 
 // util: matrix at
@@ -214,8 +325,8 @@
     }
 
 // define: is_triangular
-#define DEFINE_STRUCT_MATRIX_IS_TRIANGULAR(NAME, T) \
-    STRUCT_ATTRIB int NAME##_is_triangular(struct NAME *_matrix) \
+#define DEFINE_STRUCT_MATRIX_IS_TRIANGLE(NAME, T) \
+    STRUCT_ATTRIB int NAME##_is_triangle(struct NAME *_matrix) \
     { \
         STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
         int _row, _col, _unz = 0, _lnz = 0, _z; \
@@ -237,8 +348,8 @@
     }
 
 // define: is_lower_triangular
-#define DEFINE_STRUCT_MATRIX_IS_LOWER_TRIANGULAR(NAME, T) \
-    STRUCT_ATTRIB int NAME##_is_lower_triangular(struct NAME *_matrix) \
+#define DEFINE_STRUCT_MATRIX_IS_LOWER_TRIANGLE(NAME, T) \
+    STRUCT_ATTRIB int NAME##_is_lower_triangle(struct NAME *_matrix) \
     { \
         int _row, _col, _result = STRUCT_TRUE; \
         STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
@@ -253,8 +364,8 @@
     }
 
 // define: is_upper_triangular
-#define DEFINE_STRUCT_MATRIX_IS_UPPER_TRIANGULAR(NAME, T) \
-    STRUCT_ATTRIB int NAME##_is_upper_triangular(struct NAME *_matrix) \
+#define DEFINE_STRUCT_MATRIX_IS_UPPER_TRIANGLE(NAME, T) \
+    STRUCT_ATTRIB int NAME##_is_upper_triangle(struct NAME *_matrix) \
     { \
         STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
         int _row, _col, _result = STRUCT_TRUE; \
@@ -451,6 +562,130 @@
         return _ok; \
     }
 
+// define: set_row
+#define DEFINE_STRUCT_MATRIX_SET_ROW(NAME, T) \
+    STRUCT_ATTRIB void NAME##_set_row(struct NAME *_matrix, int _row, T _val) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
+        int _col; \
+        for (_col = 0; _col < _matrix->m_height; _col++) { \
+            STRUCT_MATRIX_SET(_matrix, _row, _col, _val); \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
+    }
+
+// define: set_col
+#define DEFINE_STRUCT_MATRIX_SET_COL(NAME, T) \
+    STRUCT_ATTRIB void NAME##_set_col(struct NAME *_matrix, int _col, T _val) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
+        int _row; \
+        for (_row = 0; _row < _matrix->m_width; _row++) { \
+            STRUCT_MATRIX_SET(_matrix, _row, _col, _val); \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
+    }
+
+// define: set_main_diag
+#define DEFINE_STRUCT_MATRIX_SET_MAIN_DIAGONAL(NAME, T) \
+    STRUCT_ATTRIB void NAME##_set_main_diagonal(struct NAME *_matrix, T _val) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
+        int _i; \
+        for (_i = 0; _i < _matrix->m_width && _i < _matrix->m_height; _i++) { \
+            STRUCT_MATRIX_SET(_matrix, _i, _i, _val); \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
+    }
+
+// define: set_anti_diag
+#define DEFINE_STRUCT_MATRIX_SET_ANTI_DIAGONAL(NAME, T) \
+    STRUCT_ATTRIB void NAME##_set_anti_diagonal(struct NAME *_matrix, T _val) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
+        int _i; \
+        for (_i = 0; _i < _matrix->m_width && _i < _matrix->m_height; _i++) { \
+            STRUCT_MATRIX_SET(_matrix, _matrix->m_height - _i - 1, _i, _val); \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
+    }
+
+// define: set_upper_triangle
+#define DEFINE_STRUCT_MATRIX_SET_UPPER_TRIANGLE(NAME, T) \
+    STRUCT_ATTRIB void NAME##_set_upper_triangle(struct NAME *_matrix, T _val) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
+        int _row, _col; \
+        for (_row = 0; _row < _matrix->m_height; _row++) { \
+            for (_col = _row + 1; _col < _matrix->m_width; _col++) { \
+                STRUCT_MATRIX_SET(_matrix, _row, _col, _val); \
+            } \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
+    }
+
+// define: set_lower_triangle
+#define DEFINE_STRUCT_MATRIX_SET_LOWER_TRIANGLE(NAME, T) \
+    STRUCT_ATTRIB void NAME##_set_lower_triangle(struct NAME *_matrix, T _val) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
+        int _row, _col; \
+        for (_row = 0; _row < _matrix->m_height; _row++) { \
+            for (_col = 0; _col < _row && _col < _matrix->m_width; _col++) { \
+                STRUCT_MATRIX_SET(_matrix, _row, _col, _val); \
+            } \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
+    }
+
+// define set_all
+#define DEFINE_STRUCT_MATRIX_SET_ALL(NAME, T) \
+    STRUCT_ATTRIB void NAME##_set_all(struct NAME *_matrix, T _val) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
+        int _row, _col; \
+        for (_row = 0; _row < _matrix->m_height; _row++) { \
+            for (_col = 0; _col < _matrix->m_width; _col++) { \
+                STRUCT_MATRIX_SET(_matrix, _row, _col, _val); \
+            } \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
+    }
+
+// define: copy_row
+#define DEFINE_STRUCT_MATRIX_COPY_ROW(NAME, T) \
+    STRUCT_ATTRIB void NAME##_copy_row(struct NAME *_matrix, int _row_src, int _row_dst) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
+        int _col; \
+        if (_row_src != _row_dst) { \
+            for (_col = 0; _col < _matrix->m_width; _col++) { \
+                STRUCT_MATRIX_SET(_matrix, _row_dst, _col, \
+                    STRUCT_MATRIX_GET(_matrix, _row_src, _col) \
+                ); \
+            } \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
+    }
+
+// define: copy_col
+#define DEFINE_STRUCT_MATRIX_COPY_COL(NAME, T) \
+    STRUCT_ATTRIB void NAME##_copy_col(struct NAME *_matrix, int _col_src, int _col_dst) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
+        int _row; \
+        if (_col_src != _col_dst) { \
+            for (_row = 0; _row < _matrix->m_height; _row++) { \
+                STRUCT_MATRIX_SET(_matrix, _row, _col_dst, \
+                    STRUCT_MATRIX_GET(_matrix, _row, _col_src) \
+                ); \
+            } \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
+    }
+
+
+
 // define: matrix
 #define DEFINE_STRUCT_MATRIX(NAME, T) \
     DEFINE_STRUCT_MATRIX_TYPEDEF(NAME, T) \
@@ -473,9 +708,9 @@
     \
     DEFINE_STRUCT_MATRIX_IS_SQUARE(NAME, T)  \
     DEFINE_STRUCT_MATRIX_IS_DIAGONAL(NAME, T)  \
-    DEFINE_STRUCT_MATRIX_IS_TRIANGULAR(NAME, T) \
-    DEFINE_STRUCT_MATRIX_IS_LOWER_TRIANGULAR(NAME, T) \
-    DEFINE_STRUCT_MATRIX_IS_UPPER_TRIANGULAR(NAME, T) \
+    DEFINE_STRUCT_MATRIX_IS_TRIANGLE(NAME, T) \
+    DEFINE_STRUCT_MATRIX_IS_LOWER_TRIANGLE(NAME, T) \
+    DEFINE_STRUCT_MATRIX_IS_UPPER_TRIANGLE(NAME, T) \
     DEFINE_STRUCT_MATRIX_IS_COL_VECTOR(NAME, T) \
     DEFINE_STRUCT_MATRIX_IS_ROW_VECTOR(NAME, T) \
     DEFINE_STRUCT_MATRIX_IS_VECTOR(NAME, T) \
@@ -486,112 +721,16 @@
     DEFINE_STRUCT_MATRIX_SET_MATRIX(NAME, T) \
     DEFINE_STRUCT_MATRIX_ADD_MATRIX(NAME, T) \
     DEFINE_STRUCT_MATRIX_MUL_MATRIX(NAME, T) \
-    DEFINE_STRUCT_MATRIX_TRANSPOSE(NAME, T)
-
-/*
-TODO
-#define DEFINE_STRUCT_MATRIX(NAME, T) \
-    DEFINE_STRUCT_MATRIX_TYPEDEF(NAME, T) \
-    DEFINE_STRUCT_MATRIX_STRUCT(NAME, T) \
-    DEFINE_STRUCT_MATRIX_NEW(NAME, T) \
-    DEFINE_STRUCT_MATRIX_INIT(NAME, T) \
-    DEFINE_STRUCT_MATRIX_DESTROY(NAME, T) \
-    DEFINE_STRUCT_MATRIX_FREE(NAME, T) \
-    DEFINE_STRUCT_MATRIX_WIDTH(NAME, T) \
-    DEFINE_STRUCT_MATRIX_HEIGHT(NAME, T) \
-    DEFINE_STRUCT_MATRIX_CLONE(NAME, T) \
-    DEFINE_STRUCT_MATRIX_SUBMATRIX(NAME, T) \
-    DEFINE_STRUCT_MATRIX_GET(NAME, T) \
-    DEFINE_STRUCT_MATRIX_SET(NAME, T) \
-    \
-    DEFINE_STRUCT_MATRIX_LOCK(NAME, T) \
-    DEFINE_STRUCT_MATRIX_UNLOCK(NAME, T) \
-    DEFINE_STRUCT_MATRIX_MT_SAFE_LOCK(NAME, T) \
-    DEFINE_STRUCT_MATRIX_MT_SAFE_UNLOCK(NAME, T) \
-    \
-    DEFINE_STRUCT_MATRIX_IS_SQUARE(NAME, T) \
-    DEFINE_STRUCT_MATRIX_IS_DIAGONAL(NAME, T) \
-    DEFINE_STRUCT_MATRIX_IS_TRIANGULAR(NAME, T) \
-    DEFINE_STRUCT_MATRIX_IS_UPPER_TRIANGULAR(NAME, T) \
-    DEFINE_STRUCT_MATRIX_IS_LOWER_TRIANGULAR(NAME, T) \
-    DEFINE_STRUCT_MATRIX_IS_VECTOR(NAME, T) \
-    DEFINE_STRUCT_MATRIX_IS_ROW_VECTOR(NAME, T) \
-    DEFINE_STRUCT_MATRIX_IS_COL_VECTOR(NAME, T) \
-    \
-    DEFINE_STRUCT_MATRIX_FILL(NAME, T) \
-    DEFINE_STRUCT_MATRIX_SET_IDENTITY(NAME, T) \
-    DEFINE_STRUCT_MATRIX_SET_ZERO(NAME, T) \
-    DEFINE_STRUCT_MATRIX_SET_SCALING(NAME, T) \
-    DEFINE_STRUCT_MATRIX_SET_TRANSLATION(NAME, T) \
-    DEFINE_STRUCT_MATRIX_SET_ROTATION(NAME, T) \
-    \
-    DEFINE_STRUCT_MATRIX_SET_MATRIX(NAME, T) \
-    DEFINE_STRUCT_MATRIX_ADD_MATRIX(NAME, T) \
-    DEFINE_STRUCT_MATRIX_MUL_MATRIX(NAME, T) \
     DEFINE_STRUCT_MATRIX_TRANSPOSE(NAME, T) \
-    DEFINE_STRUCT_MATRIX_ADJUGATE(NAME, T) \  TODO
-    DEFINE_STRUCT_MATRIX_INVERSE(NAME, T) \   TODO
-    DEFINE_STRUCT_MATRIX_CONJUGATE(NAME, T) \ TODO
-    DEFINE_STRUCT_MATRIX_TRACE(NAME, T) \     TODO
-    \
-    DEFINE_STRUCT_MATRIX_PREPEND_ROW(NAME, T) \
-    DEFINE_STRUCT_MATRIX_PREPEND_COL(NAME, T) \
-    DEFINE_STRUCT_MATRIX_APPEND_ROW(NAME, T) \
-    DEFINE_STRUCT_MATRIX_APPEND_COL(NAME, T) \
-    DEFINE_STRUCT_MATRIX_INSERT_ROW(NAME, T) \
-    DEFINE_STRUCT_MATRIX_INSERT_COL(NAME, T) \
-    DEFINE_STRUCT_MATRIX_DELETE_ROW(NAME, T) \
-    DEFINE_STRUCT_MATRIX_DELETE_COL(NAME, T) \
-    DEFINE_STRUCT_MATRIX_SWAP_ROW(NAME, T) \
-    DEFINE_STRUCT_MATRIX_SWAP_COL(NAME, T) \
     \
     DEFINE_STRUCT_MATRIX_SET_ROW(NAME, T) \
     DEFINE_STRUCT_MATRIX_SET_COL(NAME, T) \
-    DEFINE_STRUCT_MATRIX_SET_DIAG(NAME, T) \
     DEFINE_STRUCT_MATRIX_SET_MAIN_DIAGONAL(NAME, T) \
     DEFINE_STRUCT_MATRIX_SET_ANTI_DIAGONAL(NAME, T) \
-    DEFINE_STRUCT_MATRIX_SET_TRIANGLE(NAME, T) \
     DEFINE_STRUCT_MATRIX_SET_UPPER_TRIANGLE(NAME, T) \
     DEFINE_STRUCT_MATRIX_SET_LOWER_TRIANGLE(NAME, T) \
     DEFINE_STRUCT_MATRIX_SET_ALL(NAME, T) \
-    DEFINE_STRUCT_MATRIX_ROW_SET_ROW(NAME, T)\
-    DEFINE_STRUCT_MATRIX_COL_SET_COL(NAME, T)\
-    \
-    DEFINE_STRUCT_MATRIX_ADD(NAME, T) \
-    DEFINE_STRUCT_MATRIX_ADD_ROW(NAME, T) \
-    DEFINE_STRUCT_MATRIX_ADD_COL(NAME, T) \
-    DEFINE_STRUCT_MATRIX_ADD_DIAG(NAME, T) \
-    DEFINE_STRUCT_MATRIX_ADD_MAIN_DIAG(NAME, T) \
-    DEFINE_STRUCT_MATRIX_ADD_ANTI_DIAG(NAME, T) \
-    DEFINE_STRUCT_MATRIX_ADD_TRIANGLE(NAME, T) \
-    DEFINE_STRUCT_MATRIX_ADD_UPPER_TRIANGLE(NAME, T) \
-    DEFINE_STRUCT_MATRIX_ADD_LOWER_TRIANGLE(NAME, T) \
-    DEFINE_STRUCT_MATRIX_ADD_ALL(NAME, T) \
-    DEFINE_STRUCT_MATRIX_ROW_ADD_ROW(NAME, T)\
-    DEFINE_STRUCT_MATRIX_COL_ADD_COL(NAME, T)\
-    \
-    DEFINE_STRUCT_MATRIX_MUL(NAME, T) \
-    DEFINE_STRUCT_MATRIX_MUL_ROW(NAME, T) \
-    DEFINE_STRUCT_MATRIX_MUL_COL(NAME, T) \
-    DEFINE_STRUCT_MATRIX_MUL_DIAG(NAME, T) \
-    DEFINE_STRUCT_MATRIX_MUL_MAIN_DIAG(NAME, T) \
-    DEFINE_STRUCT_MATRIX_MUL_ANTI_DIAG(NAME, T) \
-    DEFINE_STRUCT_MATRIX_MUL_TRIANGLE(NAME, T) \
-    DEFINE_STRUCT_MATRIX_MUL_UPPER_TRIANGLE(NAME, T) \
-    DEFINE_STRUCT_MATRIX_MUL_LOWER_TRIANGLE(NAME, T) \
-    DEFINE_STRUCT_MATRIX_MUL_ALL(NAME, T) \
-    DEFINE_STRUCT_MATRIX_ROW_MUL_ROW(NAME, T)\
-    DEFINE_STRUCT_MATRIX_COL_MUL_COL(NAME, T)\
-    \
-    DEFINE_STRUCT_MATRIX_DETERMINANT(NAME, T) \
-    DEFINE_STRUCT_MATRIX_COFACTOR(NAME, T) \
-    DEFINE_STRUCT_MATRIX_GAUSS(NAME, T) \
-    DEFINE_STRUCT_MATRIX_LU(NAME, T) \
-    DEFINE_STRUCT_MATRIX_SVD(NAME, T) \
-    \
-    DEFINE_STRUCT_MATRIX_EXP(NAME, T) \
-    DEFINE_STRUCT_MATRIX_SIN(NAME, T) \
-    DEFINE_STRUCT_MATRIX_COS(NAME, T) \
-    DEFINE_STRUCT_MATRIX_LOG(NAME, T) \
+    DEFINE_STRUCT_MATRIX_COPY_ROW(NAME, T) \
+    DEFINE_STRUCT_MATRIX_COPY_COL(NAME, T) \
 
-*/
+
