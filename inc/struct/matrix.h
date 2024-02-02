@@ -661,9 +661,9 @@ TODO
         STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
     }
 
-// define: copy_row
-#define DEFINE_STRUCT_MATRIX_COPY_ROW(NAME, T) \
-    STRUCT_ATTRIB void NAME##_copy_row(struct NAME *_matrix, int _row_src, int _row_dst) \
+// define: row_set_row
+#define DEFINE_STRUCT_MATRIX_ROW_SET_ROW(NAME, T) \
+    STRUCT_ATTRIB void NAME##_row_set_row(struct NAME *_matrix, int _row_src, int _row_dst) \
     { \
         STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
         int _col; \
@@ -677,9 +677,9 @@ TODO
         STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
     }
 
-// define: copy_col
-#define DEFINE_STRUCT_MATRIX_COPY_COL(NAME, T) \
-    STRUCT_ATTRIB void NAME##_copy_col(struct NAME *_matrix, int _col_src, int _col_dst) \
+// define: col_set_col
+#define DEFINE_STRUCT_MATRIX_COL_SET_COL(NAME, T) \
+    STRUCT_ATTRIB void NAME##_col_set_col(struct NAME *_matrix, int _col_src, int _col_dst) \
     { \
         STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
         int _row; \
@@ -693,9 +693,9 @@ TODO
         STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
     }
 
-// define: swap_row
-#define DEFINE_STRUCT_MATRIX_SWAP_ROW(NAME, T) \
-    STRUCT_ATTRIB void NAME##_swap_row(struct NAME *_matrix, int _row1, int _row2) \
+// define: swap_rows
+#define DEFINE_STRUCT_MATRIX_SWAP_ROWS(NAME, T) \
+    STRUCT_ATTRIB void NAME##_swap_rows(struct NAME *_matrix, int _row1, int _row2) \
     { \
         STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
         int _col; \
@@ -710,9 +710,9 @@ TODO
         STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
     }
 
-// define: swap_col
-#define DEFINE_STRUCT_MATRIX_SWAP_COL(NAME, T) \
-    STRUCT_ATTRIB void NAME##_swap_col(struct NAME *_matrix, int _col1, int _col2) \
+// define: swap_cols
+#define DEFINE_STRUCT_MATRIX_SWAP_COLS(NAME, T) \
+    STRUCT_ATTRIB void NAME##_swap_cols(struct NAME *_matrix, int _col1, int _col2) \
     { \
         STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
         int _row; \
@@ -727,6 +727,71 @@ TODO
         STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
     }
 
+// define: add_row
+#define DEFINE_STRUCT_MATRIX_ADD_ROW(NAME, T) \
+    STRUCT_ATTRIB void NAME##_add_row(struct NAME *_matrix, int _row, T _val) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
+        int _col; \
+        for (_col = 0; _col < _matrix->m_width; _col++) { \
+            STRUCT_MATRIX_SET(_matrix, _row, _col, \
+                STRUCT_ADD(STRUCT_MATRIX_GET(_matrix, _row, _col), _val) \
+            ); \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
+    }
+
+// define: add_col
+#define DEFINE_STRUCT_MATRIX_ADD_COL(NAME, T) \
+    STRUCT_ATTRIB void NAME##_add_col(struct NAME *_matrix, int _col, T _val) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
+        int _row; \
+        for (_row = 0; _row < _matrix->m_height; _row++) { \
+            STRUCT_MATRIX_SET(_matrix, _row, _col, \
+                STRUCT_ADD(STRUCT_MATRIX_GET(_matrix, _row, _col), _val) \
+            ); \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
+    }
+
+// define: row_add_row
+#define DEFINE_STRUCT_MATRIX_ROW_ADD_ROW(NAME, T) \
+    STRUCT_ATTRIB void NAME##_row_add_row(struct NAME *_matrix, int _row_src, int _row_dst) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
+        int _col; \
+        if (_row_src != _row_dst) { \
+            for (_col = 0; _col < _matrix->m_width; _col++) { \
+                STRUCT_MATRIX_SET(_matrix, _row_dst, _col, \
+                    STRUCT_ADD( \
+                        STRUCT_MATRIX_GET(_matrix, _row_src, _col), \
+                        STRUCT_MATRIX_GET(_matrix, _row_dst, _col) \
+                    ) \
+                ); \
+            } \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
+    }
+
+// define: col_add_col
+#define DEFINE_STRUCT_MATRIX_COL_ADD_COL(NAME, T) \
+    STRUCT_ATTRIB void NAME##_col_add_col(struct NAME *_matrix, int _col_src, int _col_dst) \
+    { \
+        STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
+        int _row; \
+        if (_col_src != _col_dst) { \
+            for (_row = 0; _row < _matrix->m_height; _row++) { \
+                STRUCT_MATRIX_SET(_matrix, _row, _col_dst, \
+                    STRUCT_ADD( \
+                        STRUCT_MATRIX_GET(_matrix, _row, _col_src), \
+                        STRUCT_MATRIX_GET(_matrix, _row, _col_dst) \
+                    ) \
+                ); \
+            } \
+        } \
+        STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
+    }
 
 
 // define: matrix
@@ -773,10 +838,14 @@ TODO
     DEFINE_STRUCT_MATRIX_SET_UPPER_TRIANGLE(NAME, T) \
     DEFINE_STRUCT_MATRIX_SET_LOWER_TRIANGLE(NAME, T) \
     DEFINE_STRUCT_MATRIX_SET_ALL(NAME, T) \
-    DEFINE_STRUCT_MATRIX_COPY_ROW(NAME, T) \
-    DEFINE_STRUCT_MATRIX_COPY_COL(NAME, T) \
-    DEFINE_STRUCT_MATRIX_SWAP_ROW(NAME, T) \
-    DEFINE_STRUCT_MATRIX_SWAP_COL(NAME, T) \
-
+    DEFINE_STRUCT_MATRIX_ROW_SET_ROW(NAME, T) \
+    DEFINE_STRUCT_MATRIX_COL_SET_COL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SWAP_ROWS(NAME, T) \
+    DEFINE_STRUCT_MATRIX_SWAP_COLS(NAME, T) \
+    \
+    DEFINE_STRUCT_MATRIX_ADD_ROW(NAME, T) \
+    DEFINE_STRUCT_MATRIX_ADD_COL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_ROW_ADD_ROW(NAME, T) \
+    DEFINE_STRUCT_MATRIX_COL_ADD_COL(NAME, T) \
 
 

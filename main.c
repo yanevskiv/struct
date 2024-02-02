@@ -50,7 +50,7 @@ int main() {
     matrix_set_lower_triangle(mat3, 8);
     matrix_set_all(mat3, 0);
     matrix_set_col(mat3, 0, 3);
-    matrix_copy_col(mat3, 0, 2);
+    matrix_col_set_col(mat3, 0, 2);
     matrix_print(mat3);
 
 
