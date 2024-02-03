@@ -39,8 +39,8 @@ TODO
     DEFINE_STRUCT_MATRIX_IS_SINGULAR(NAME, T) \
     \
     DEFINE_STRUCT_MATRIX_FILL(NAME, T) \
-    DEFINE_STRUCT_MATRIX_SET_IDENTITY(NAME, T) \
-    DEFINE_STRUCT_MATRIX_SET_ZERO(NAME, T) \
+    DEFINE_STRUCT_MATRIX_IDENTITY(NAME, T) \
+    DEFINE_STRUCT_MATRIX_ZERO(NAME, T) \
     \
     DEFINE_STRUCT_MATRIX_SET_SCALING(NAME, T) \
     DEFINE_STRUCT_MATRIX_SET_TRANSLATION(NAME, T) \
@@ -451,9 +451,9 @@ TODO
         return _result; \
     }
 
-// define: set_identity
-#define DEFINE_STRUCT_MATRIX_SET_IDENTITY(NAME, T)\
-    STRUCT_ATTRIB void NAME##_set_identity(struct NAME *_matrix) \
+// define: identity
+#define DEFINE_STRUCT_MATRIX_IDENTITY(NAME, T)\
+    STRUCT_ATTRIB void NAME##_identity(struct NAME *_matrix) \
     { \
         STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
         int _row, _col; \
@@ -469,9 +469,9 @@ TODO
         STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
     }
 
-// define: set_zero
-#define DEFINE_STRUCT_MATRIX_SET_ZERO(NAME, T) \
-    STRUCT_ATTRIB void NAME##_set_zero(struct NAME *_matrix) \
+// define: zero
+#define DEFINE_STRUCT_MATRIX_ZERO(NAME, T) \
+    STRUCT_ATTRIB void NAME##_zero(struct NAME *_matrix) \
     { \
         STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
         int _row, _col; \
@@ -523,36 +523,57 @@ TODO
         return _ok; \
     }
 
-// define: mul_matrix
-#define DEFINE_STRUCT_MATRIX_MUL_MATRIX(NAME, T) \
-    STRUCT_ATTRIB int NAME##_mul_matrix(struct NAME *_matrix_dst, struct NAME *_matrix1, struct NAME *_matrix2) \
+// body: matrix mul
+#define STRUCT_BODY_MATRIX_MUL(dest_matrix, left_matrix, right_matrix, T) \
     { \
         STRUCT_MT_SAFE_LOCK(_matrix_dst->m_mt_safe) \
-        int _row, _col, _i, _ok  = STRUCT_TRUE; \
-        _ok = _ok && (_matrix1->m_width == _matrix2->m_height); \
-        _ok = _ok && (_matrix_dst->m_width == _matrix1->m_width); \
-        _ok = _ok && (_matrix_dst->m_height == _matrix2->m_height); \
+        int _row, _col, _i; \
+        int _width = (right_matrix)->m_width; \
+        int _height = (left_matrix)->m_height; \
+        int _ok = ((left_matrix)->m_width == (right_matrix)->m_height); \
         if (_ok) { \
-            for (_row = 0; _row < _matrix_dst->m_height; _row++) { \
-                for (_col = 0; _col < _matrix_dst->m_width; _col++) { \
+            T *_data = STRUCT_CALLOC(_width * _height, T); \
+            for (_row = 0; _row < _height; _row++) { \
+                for (_col = 0; _col < _width; _col++) { \
                     T _sum = STRUCT_ZERO;  \
-                    for (_i = 0; _i < _matrix1->m_height; _i++) { \
+                    for (_i = 0; _i < (left_matrix)->m_width; _i++) { \
                         STRUCT_ASSIGN(_sum, \
                             STRUCT_ADD(_sum, \
                                 STRUCT_MUL( \
-                                    STRUCT_MATRIX_GET(_matrix1, _row, _i), \
-                                    STRUCT_MATRIX_GET(_matrix2, _i, _col) \
+                                    STRUCT_MATRIX_GET((left_matrix), _row, _i), \
+                                    STRUCT_MATRIX_GET((right_matrix), _i, _col) \
                                 ) \
                             ) \
                         ); \
                     } \
-                    STRUCT_MATRIX_SET(_matrix_dst, _row, _col, _sum);\
+                    STRUCT_ASSIGN(_data[STRUCT_MATRIX_INDEX(_row, _col, _width, _height)], _sum); \
                 } \
             } \
+            STRUCT_FREE((dest_matrix)->m_data); \
+            (dest_matrix)->m_data = _data; \
+            (dest_matrix)->m_width = _width; \
+            (dest_matrix)->m_height = _height; \
         } \
         STRUCT_MT_SAFE_UNLOCK(_matrix_dst->m_mt_safe) \
         return _ok; \
     }
+
+// define: lmul
+#define DEFINE_STRUCT_MATRIX_LMUL(NAME, T) \
+    STRUCT_ATTRIB int NAME##_lmul(struct NAME *_matrix1, struct NAME *_matrix2) \
+        STRUCT_BODY_MATRIX_MUL(_matrix1, _matrix2, _matrix1, T)
+
+// define: rmul
+#define DEFINE_STRUCT_MATRIX_RMUL(NAME, T) \
+    STRUCT_ATTRIB int NAME##_rmul(struct NAME *_matrix1, struct NAME *_matrix2) \
+        STRUCT_BODY_MATRIX_MUL(_matrix1, _matrix1, _matrix2, T)
+
+// define: mul
+#define DEFINE_STRUCT_MATRIX_MUL(NAME, T) \
+    STRUCT_ATTRIB int NAME##_mul(struct NAME *_matrix, struct NAME *_matrix1, struct NAME *_matrix2) \
+        STRUCT_BODY_MATRIX_MUL(_matrix, _matrix1, _matrix2, T)
+
+// define: mul_new
 
 // define: transpose
 #define DEFINE_STRUCT_MATRIX_TRANSPOSE(NAME, T) \
@@ -828,11 +849,13 @@ TODO
     DEFINE_STRUCT_MATRIX_IS_ROW_VECTOR(NAME, T) \
     DEFINE_STRUCT_MATRIX_IS_VECTOR(NAME, T) \
     \
-    DEFINE_STRUCT_MATRIX_SET_IDENTITY(NAME, T) \
-    DEFINE_STRUCT_MATRIX_SET_ZERO(NAME, T) \
+    DEFINE_STRUCT_MATRIX_IDENTITY(NAME, T) \
+    DEFINE_STRUCT_MATRIX_ZERO(NAME, T) \
     DEFINE_STRUCT_MATRIX_SET_MATRIX(NAME, T) \
     DEFINE_STRUCT_MATRIX_ADD_MATRIX(NAME, T) \
-    DEFINE_STRUCT_MATRIX_MUL_MATRIX(NAME, T) \
+    DEFINE_STRUCT_MATRIX_LMUL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_RMUL(NAME, T) \
+    DEFINE_STRUCT_MATRIX_MUL(NAME, T) \
     DEFINE_STRUCT_MATRIX_TRANSPOSE(NAME, T) \
     \
     DEFINE_STRUCT_MATRIX_SET_ROW(NAME, T) \
