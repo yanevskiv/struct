@@ -27,31 +27,54 @@ int main() {
 
     // Mat 2
     printf("\nMat2: \n");
-    matrix_t *mat2 = matrix_new(4, 4);
+    matrix_t *mat2 = matrix_new(4, 3);
     matrix_set_matrix(mat2, mat1);
-    matrix_add_matrix(mat2, mat2, mat2);
-    matrix_add_matrix(mat2, mat2, mat2);
-    matrix_add_matrix(mat2, mat2, mat2);
+    matrix_set_upper_triangle(mat2, 5);
+    //printf("%d %d\n", mat2->m_width, mat2->m_height);
     matrix_print(mat2);
 
-    printf("\nMat3: \n");
-    matrix_t *mat3 = matrix_clone(mat2);
-    matrix_set_identity(mat1);
-    matrix_set_identity(mat2);
-    matrix_set_zero(mat3);
-    matrix_mul_matrix(mat3, mat1, mat2);
-    matrix_set_row(mat3, 0, 3);
-    matrix_set_col(mat3, 3, 3);
-    matrix_set_col(mat3, 0, 3);
-    matrix_set_row(mat3, 3, 3);
-    matrix_set_main_diagonal(mat3, 5);
-    matrix_set_anti_diagonal(mat3, 4);
-    matrix_set_upper_triangle(mat3, 9);
-    matrix_set_lower_triangle(mat3, 8);
-    matrix_set_all(mat3, 0);
-    matrix_set_col(mat3, 0, 3);
-    matrix_col_set_col(mat3, 0, 2);
-    matrix_print(mat3);
+    //printf("\nMat3: \n");
+    //matrix_t *mat3 = matrix_clone(mat2);
+    //matrix_set_identity(mat1);
+    //matrix_set_identity(mat2);
+    //matrix_set_zero(mat3);
+    //matrix_mul_matrix(mat3, mat1, mat2);
+    //matrix_set_row(mat3, 0, 3);
+    //matrix_set_col(mat3, 3, 3);
+    //matrix_set_col(mat3, 0, 3);
+    //matrix_set_row(mat3, 3, 3);
+    //matrix_set_main_diagonal(mat3, 5);
+    //matrix_set_anti_diagonal(mat3, 4);
+    //matrix_set_upper_triangle(mat3, 9);
+    //matrix_set_lower_triangle(mat3, 8);
+    //matrix_set_all(mat3, 0);
+    //matrix_col_set_col(mat3, 0, 2);
+    //matrix_add_col(mat3, 0, 9);
+    //matrix_col_add_col(mat3, 0, 2);
+    //matrix_transpose(mat3);
+    //matrix_transpose(mat3);
+    //matrix_print(mat3);
+    { void * x = (void*) calloc(10 * 4, 255); }
+    { void * x = (void*) calloc(10 * 4, 255); }
+    { void * x = (void*) calloc(10 * 4, 255); }
+    { void * x = (void*) calloc(10 * 4, 255); }
+    { void * x = (void*) calloc(10 * 4, 255); }
+    { void * x = (void*) calloc(10 * 4, 255); }
+    { void * x = (void*) calloc(10 * 4, 255); }
+    { void * x = (void*) calloc(10 * 4, 255); }
+    { void * x = (void*) calloc(10 * 4, 255); }
+    { void * x = (void*) calloc(10 * 4, 255); }
+    { void * x = (void*) calloc(0 * 4, 255); }
+    { void * x = (void*) calloc(0 * 4, 255); }
+    { void * x = (void*) calloc(0 * 4, 255); }
+    { void * x = (void*) calloc(0 * 4, 255); }
+    { void * x = (void*) calloc(0 * 4, 255); }
+    { void * x = (void*) calloc(0 * 4, 255); }
+    { void * x = (void*) calloc(0 * 4, 255); }
+    { void * x = (void*) calloc(10 * 4, 255); }
+    { void * x = (void*) calloc(10 * 4, 255); }
+    { void * x = (void*) calloc(10 * 4, 255); }
+    { void * x = (void*) calloc(10 * 4, 255); }
 
 
     // Tests

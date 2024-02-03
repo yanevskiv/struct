@@ -126,9 +126,13 @@ TODO
 */
 #include "common.h"
 
+// util: matrix_index
+#define STRUCT_MATRIX_INDEX(row, col, width, height) \
+    ((row) * (width) + (col))
+
 // util: matrix at
 #define STRUCT_MATRIX_AT(matrix, row, col) \
-    ((row) * ((matrix)->m_width) + (col))
+    STRUCT_MATRIX_INDEX((row), (col), (matrix)->m_width, (matrix)->m_height)
 
 // util: matrix get
 #define STRUCT_MATRIX_GET(matrix, row, col) \
@@ -497,19 +501,19 @@ TODO
 
 // define: add_matrix
 #define DEFINE_STRUCT_MATRIX_ADD_MATRIX(NAME, T) \
-    STRUCT_ATTRIB int NAME##_add_matrix(struct NAME *_matrix_dst, struct NAME *_matrix1, struct NAME *_matrix2) \
+    STRUCT_ATTRIB int NAME##_add_matrix(struct NAME *_matrix, struct NAME *_matrix_src) \
     { \
         STRUCT_MT_SAFE_LOCK(_matrix_dst->m_mt_safe) \
         int _row, _col, _ok = STRUCT_TRUE; \
-        _ok = _ok && (_matrix_dst->m_width == _matrix1->m_width) && (_matrix1->m_width == _matrix2->m_width); \
-        _ok = _ok && (_matrix_dst->m_height == _matrix1->m_height) && (_matrix1->m_height== _matrix2->m_height); \
+        _ok = _ok && (_matrix->m_width == _matrix_src->m_width) && (_matrix->m_width == _matrix_src->m_width); \
+        _ok = _ok && (_matrix->m_height == _matrix_src->m_height) && (_matrix->m_height == _matrix_src->m_height); \
         if (_ok) { \
-            for (_row = 0; _row < _matrix_dst->m_height; _row++) { \
-                for (_col = 0; _col < _matrix_dst->m_width; _col++) { \
-                    STRUCT_MATRIX_SET(_matrix_dst, _row, _col, \
+            for (_row = 0; _row < _matrix->m_height; _row++) { \
+                for (_col = 0; _col < _matrix->m_width; _col++) { \
+                    STRUCT_MATRIX_SET(_matrix, _row, _col, \
                         STRUCT_ADD( \
-                            STRUCT_MATRIX_GET(_matrix1, _row, _col), \
-                            STRUCT_MATRIX_GET(_matrix2, _row, _col) \
+                            STRUCT_MATRIX_GET(_matrix, _row, _col), \
+                            STRUCT_MATRIX_GET(_matrix_src, _row, _col) \
                         ) \
                     ); \
                 } \
@@ -552,23 +556,23 @@ TODO
 
 // define: transpose
 #define DEFINE_STRUCT_MATRIX_TRANSPOSE(NAME, T) \
-    STRUCT_ATTRIB int NAME##_transpose(struct NAME *_matrix_dst, struct NAME *_matrix_src) \
+    STRUCT_ATTRIB void NAME##_transpose(struct NAME *_matrix) \
     { \
-        STRUCT_MT_SAFE_LOCK(_matrix_dst->m_mt_safe) \
-        int _row, _col, _ok = STRUCT_TRUE; \
-        _ok = _ok && (_matrix_dst->m_width == _matrix_src->m_height); \
-        _ok = _ok && (_matrix_dst->m_height == _matrix_src->m_width); \
-        if (_ok) { \
-            for (_row = 0; _row < _matrix_src->m_height; _row++) { \
-                for (_col = 0; _col < _matrix_src->m_width; _col++) { \
-                    STRUCT_MATRIX_SET(_matrix_dst, _col, _row, \
-                        STRUCT_MATRIX_GET(_matrix_src, _row, _col) \
-                    ); \
-                } \
+        STRUCT_MT_SAFE_LOCK(_matrix->m_mt_safe) \
+        int _row, _col, _width = _matrix->m_width, _height = _matrix->m_height; \
+        T *_data = (T*) STRUCT_CALLOC(_width * _height, T); \
+        for (_row = 0; _row < _height; _row++) { \
+            for (_col = 0; _col < _width; _col++) { \
+                int _at1 = STRUCT_MATRIX_INDEX(_row, _col, _width, _height); \
+                int _at2 = STRUCT_MATRIX_INDEX(_col, _row, _height, _width); \
+                STRUCT_ASSIGN(_data[_at2], _matrix->m_data[_at1]); \
             } \
         } \
-        STRUCT_MT_SAFE_UNLOCK(_matrix_dst->m_mt_safe) \
-        return _ok; \
+        STRUCT_FREE(_matrix->m_data); \
+        _matrix->m_data = _data; \
+        _matrix->m_width = _height; \
+        _matrix->m_height = _width; \
+        STRUCT_MT_SAFE_UNLOCK(_matrix->m_mt_safe) \
     }
 
 // define: set_row
