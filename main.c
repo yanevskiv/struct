@@ -77,50 +77,6 @@ int main() {
     mat_lmul(mat2, rot);
     mat_print(mat2);
 
-    //printf("\nMat3: \n");
-    //mat_t *mat3 = mat_clone(mat2);
-    //mat_set_identity(mat1);
-    //mat_set_identity(mat2);
-    //mat_set_zero(mat3);
-    //mat_mul_matrix(mat3, mat1, mat2);
-    //mat_set_row(mat3, 0, 3);
-    //mat_set_col(mat3, 3, 3);
-    //mat_set_col(mat3, 0, 3);
-    //mat_set_row(mat3, 3, 3);
-    //mat_set_main_diagonal(mat3, 5);
-    //mat_set_anti_diagonal(mat3, 4);
-    //mat_set_upper_triangle(mat3, 9);
-    //mat_set_lower_triangle(mat3, 8);
-    //mat_set_all(mat3, 0);
-    //mat_col_set_col(mat3, 0, 2);
-    //mat_add_col(mat3, 0, 9);
-    //mat_col_add_col(mat3, 0, 2);
-    //mat_transpose(mat3);
-    //mat_transpose(mat3);
-    //mat_print(mat3);
-    { void * x = (void*) calloc(10 * 4, 255); }
-    { void * x = (void*) calloc(10 * 4, 255); }
-    { void * x = (void*) calloc(10 * 4, 255); }
-    { void * x = (void*) calloc(10 * 4, 255); }
-    { void * x = (void*) calloc(10 * 4, 255); }
-    { void * x = (void*) calloc(10 * 4, 255); }
-    { void * x = (void*) calloc(10 * 4, 255); }
-    { void * x = (void*) calloc(10 * 4, 255); }
-    { void * x = (void*) calloc(10 * 4, 255); }
-    { void * x = (void*) calloc(10 * 4, 255); }
-    { void * x = (void*) calloc(0 * 4, 255); }
-    { void * x = (void*) calloc(0 * 4, 255); }
-    { void * x = (void*) calloc(0 * 4, 255); }
-    { void * x = (void*) calloc(0 * 4, 255); }
-    { void * x = (void*) calloc(0 * 4, 255); }
-    { void * x = (void*) calloc(0 * 4, 255); }
-    { void * x = (void*) calloc(0 * 4, 255); }
-    { void * x = (void*) calloc(10 * 4, 255); }
-    { void * x = (void*) calloc(10 * 4, 255); }
-    { void * x = (void*) calloc(10 * 4, 255); }
-    { void * x = (void*) calloc(10 * 4, 255); }
-
-
     // Tests
     printf("\nTests: \n");
     printf("Is mat1 Diagonal? %s\n", mat_is_diagonal(mat1) ? "Yes" : "No");

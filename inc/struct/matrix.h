@@ -1,10 +1,3 @@
-/**
- * (c) Ivan Janevski
- *
- * Matrix
- */
-
-
 /*
 TODO
 #define DEFINE_STRUCT_MATRIX(NAME, T) \
