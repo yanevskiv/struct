@@ -1,7 +1,3 @@
-/**
- * (c) Ivan Janevski
- */
-
 #include "common.h"
 
 #define DEFINE_STRUCT_MAGMA(NAME, T)

@@ -1,6 +1,4 @@
 /**
- * (c) Ivan Janevski
- * 
  * B+ Tree 
  */
 

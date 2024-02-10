@@ -1,6 +1,4 @@
 /** 
- * 2024 (c) Ivan Janevski
- *
  * Common defs
  */
 

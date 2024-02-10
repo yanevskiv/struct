@@ -1,6 +1,4 @@
 /**
- * (c) Ivan Janevski
- *
  * Linked List
  */
 

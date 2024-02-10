@@ -1,6 +1,4 @@
 /**
- * (c) Ivan Janevski
- *
  * Rounded Buffer
  */
 #include "common.h"

@@ -1,8 +1,3 @@
-/**
- * (c) Ivan Janevski
- */
-
-
 // mutex
 #undef STRUCT_MUTEX_DECLARE
 #undef STRUCT_MUTEX_INIT
