@@ -1,5 +1,6 @@
 #include "common.h"
 
+
 #define DEFINE_STRUCT_MAGMA(NAME, T)
 #define DEFINE_STRUCT_QUASIGROUP(NAME, T)
 #define DEFINE_STRUCT_LOOP(NAME, T)
