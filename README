@@ -1,1 +1,64 @@
 C templating library
+
+Easy way to create various data structures of any type.
+
+ [ ] Linear
+   [ ] Pair
+   [ ] Tuple
+   [ ] Buffer
+   [ ] Array
+   [ ] Array List
+   [ ] List (Singly linked)
+   [ ] List (Doubly linked)
+   [ ] Grid
+   [ ] Map
+ [ ] Tree
+   [ ] Binary tree
+   [ ] Quad tree
+   [ ] N-ary tree
+   [ ] K-d tree
+   [ ] General tree
+   [ ] Search trees
+     [ ] Binary search tree
+     [ ] AVL tree
+     [ ] Red black tree
+     [ ] Trie tree
+     [ ] Splay tree
+     [ ] B tree
+     [ ] B* tree
+     [ ] B+ tree
+     [ ] 2-3 tree
+     [ ] 2-3-4 tree
+ [ ] Math / Algebra
+   [ ] Polynomial
+   [ ] Matrix
+   [ ] Tensor
+   [ ] Algebraic Structures
+    [ ] Magma
+    [ ] Semigroup
+    [ ] Quasigroup
+    [ ] Loop
+    [ ] Monoid
+    [ ] Group
+    [ ] Ring
+    [ ] Field
+ [ ] Graph
+   [ ] Weighted graph
+
+Example:
+    
+    #include <stdio.h>
+    #include <struct/list.h>
+
+    STRUCT_LIST_DEFINE(int_list, int)
+
+    int main() {
+        struct int_list *list = int_list_new();
+        int_list_push(list, 5);
+        int_list_push(list, 8);
+        int_list_push(list, 6);
+
+        int buffer;
+        while (int_list_pop(list, &buffer))
+            printf("%d ", buffer);
+    }
